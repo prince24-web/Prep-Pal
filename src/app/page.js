@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { useState } from "react";
 import {
   BookOpen,
   FileText,
@@ -23,48 +23,7 @@ export default function home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Navigation */}
-      <nav className="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-sm border-b border-blue-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-            <Brain className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gray-800">PrepPal</span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8">
-          <a
-            href="#features"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            Features
-          </a>
-          <a
-            href="#how-it-works"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            How it works
-          </a>
-          <Link
-            href="/pricingpage"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            Pricing
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link href="/signin">
-            <button className="px-6 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
-              Sign in
-            </button>
-          </Link>
-          <Link href="/upload">
-            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
-              Get started
-            </button>
-          </Link>
-        </div>
-      </nav>
+      
 
       {/* Hero Section */}
       <section className="px-6 py-16 max-w-7xl mx-auto">

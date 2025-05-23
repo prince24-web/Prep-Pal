@@ -29,7 +29,7 @@ const PricingPage = () => {
     {
       name: "Pro",
       description: "For serious students and professionals",
-      price: { monthly: 12.99, annual: 9.99 },
+      price: { monthly: 4.99, annual: 3.99 },
       popular: true,
       features: [
         "Unlimited PDF uploads",
@@ -50,7 +50,7 @@ const PricingPage = () => {
     {
       name: "Teams",
       description: "For study groups and educational institutions",
-      price: { monthly: 29.99, annual: 24.99 },
+      price: { monthly: 9.99, annual: 7.99 },
       popular: false,
       features: [
         "Everything in Pro",
@@ -58,11 +58,10 @@ const PricingPage = () => {
         "Shared study materials",
         "Team progress tracking",
         "Bulk PDF processing",
-        "Custom branding",
         "Advanced analytics",
         "Priority support",
         "Admin dashboard",
-        "API access"
+    
       ],
       limitations: [],
       cta: "Start Team Trial",
@@ -117,31 +116,7 @@ const PricingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  📚 PrepPal
-                </span>
-              </div>
-              <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-4">
-                  <a href="#" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Features</a>
-                  <a href="#" className="bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">About</a>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <a href="#" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Sign In</a>
-              <a href="#" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-blue-600 hover:to-purple-700">Sign Up</a>
-            </div>
-          </div>
-        </div>
-      </nav>
+    
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-20 overflow-hidden">
@@ -357,50 +332,7 @@ const PricingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                📚 PrepPal
-              </span>
-              <p className="mt-4 text-gray-400 leading-relaxed">
-                Empowering students worldwide with AI-powered study tools that make learning more efficient and enjoyable.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">System Status</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 PrepPal. All rights reserved. Made with ❤️ for students everywhere.</p>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 };
