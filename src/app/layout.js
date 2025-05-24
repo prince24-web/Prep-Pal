@@ -4,7 +4,6 @@ import Footer from "./components/footer";
 import ResponsiveNavbar from "./components/navbar";
 import { ThemeProvider } from "./context/themecontext";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -14,9 +13,11 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
 export const metadata = {
   title: 'PrepPal - Your Smart Study Companion',
-  description: 'PrepPal summarizes your PDFs, highlights key points, and generates quizzes to help you learn smarter and faster.',
+  description:
+    'PrepPal summarizes your PDFs, highlights key points, and generates quizzes to help you learn smarter and faster.',
   icons: {
     icon: '/preppal-icon.png',
   },
@@ -34,19 +35,39 @@ export const metadata = {
   },
 };
 
-
-
 export default function RootLayout({ children }) {
   return (
-    // app/layout.js
-    // app/layout.js
-  <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><ThemeProvider>
-        <ResponsiveNavbar/>
-        {children}
-        <Footer/>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta charSet="UTF-8" />
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="/preppal-icon.png" />
+        <title>PrepPal - Your Smart Study Companion</title>
+        <meta
+          name="description"
+          content="PrepPal summarizes your PDFs, highlights key points, and generates quizzes to help you learn smarter and faster."
+        />
+        <meta property="og:title" content="PrepPal - Your Smart Study Companion" />
+        <meta
+          property="og:description"
+          content="PrepPal helps students learn better by summarizing PDFs and creating smart quizzes."
+        />
+        <meta property="og:image" content="/preppal-icon.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="PrepPal - Your Smart Study Companion" />
+        <meta
+          name="twitter:description"
+          content="Summarize PDFs, highlight key points, and test your knowledge with quizzes."
+        />
+        <meta name="twitter:image" content="/preppal-icon.png" />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider>
+          <ResponsiveNavbar />
+          {children}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
