@@ -15,7 +15,7 @@ const FeaturesPage = () => {
           </h1>
           <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
             Discover all the AI-powered tools that make PrepPal the ultimate study companion. 
-            From instant summaries to adaptive quizzes, we've got everything you need to excel.
+            From instant summaries to adaptive quizzes, we&apos;ve got everything you need to excel.
           </p>
         </div>
       </section>

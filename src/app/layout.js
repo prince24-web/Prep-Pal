@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "./components/footer";
 import ResponsiveNavbar from "./components/navbar";
-import { ThemeProvider } from "./context/themecontext";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://Prep-Pal.vercel.app'),
   title: 'PrepPal - Your Smart Study Companion',
   description:
     'PrepPal summarizes your PDFs, highlights key points, and generates quizzes to help you learn smarter and faster.',
@@ -59,16 +60,14 @@ export default function RootLayout({ children }) {
         <meta name="twitter:title" content="PrepPal - Your Smart Study Companion" />
         <meta
           name="twitter:description"
-          content="Summarize PDFs, highlight key points, and test your knowledge with quizzes."
+          content="Summarize PDFs, highlight key points, and test your knowledge with quizzes and generate flash cards."
         />
         <meta name="twitter:image" content="/preppal-icon.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider>
           <ResponsiveNavbar />
           {children}
           <Footer />
-        </ThemeProvider>
       </body>
     </html>
   );

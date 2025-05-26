@@ -146,11 +146,11 @@ const WhatsNewPage = () => {
             </div>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            What's <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">New</span>
+            What&apos;s <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">New</span>
           </h1>
           <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
             Stay updated with the latest features, improvements, and announcements from PrepPal. 
-            We're constantly evolving to make your study experience even better.
+            We&apos;re constantly evolving to make your study experience even better.
           </p>
         </div>
       </section>

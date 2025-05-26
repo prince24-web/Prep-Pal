@@ -13,7 +13,7 @@ const AboutPage = () => {
             About <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">PrepPal</span>
           </h1>
           <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            We're revolutionizing how students learn by transforming static PDFs into dynamic, 
+            We&apos;re revolutionizing how students learn by transforming static PDFs into dynamic, 
             AI-powered study materials that adapt to your learning style and pace.
           </p>
         </div>
@@ -31,7 +31,7 @@ const AboutPage = () => {
                 ineffective memorization techniques.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed">
-                That's why we created an AI-powered platform that instantly transforms your PDFs 
+                That&apos;s why we created an AI-powered platform that instantly transforms your PDFs 
                 into comprehensive summaries, interactive quizzes, and smart flashcards—helping 
                 you study smarter, not harder.
               </p>
@@ -165,7 +165,7 @@ const AboutPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">Ready to Transform Your Study Experience?</h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join thousands of students who are already studying smarter with PrepPal's AI-powered tools.
+            Join thousands of students who are already studying smarter with PrepPal&apos;s AI-powered tools.
           </p>
           <Link href="/upload">
             <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">

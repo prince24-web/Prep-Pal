@@ -59,7 +59,7 @@ const ResponsiveNavbar = () => {
                   : 'text-blue-600 border-blue-600 hover:bg-blue-50'
               }`}
             >
-              What's New
+              What&apos;s New
             </Link>
             <Link
               href="/upload"
@@ -115,7 +115,7 @@ const ResponsiveNavbar = () => {
                   : 'text-blue-600 border-blue-600 hover:bg-blue-50'
               }`}
             >
-              What's New
+              What&apos;s New
             </Link>
             <Link
               href="/upload"

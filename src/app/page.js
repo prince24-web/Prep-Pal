@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 
-export default function home() {
+export default function Home() {
   const router = useRouter();
 
   const handleClick = useCallback(() => {
