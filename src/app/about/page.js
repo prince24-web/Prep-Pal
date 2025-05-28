@@ -186,7 +186,7 @@ const AboutPage = () => {
             <span className="text-lg font-bold">PrepPal</span>
           </div>
           <p className="text-gray-400">
-            © 2025 PrepPal. All rights reserved. Transforming learning with AI.
+            © 2025 PrepPal, All rights reserved. Transforming learning with AI.
           </p>
         </div>
       </footer>
