@@ -62,9 +62,9 @@ const ResponsiveNavbar = () => {
               What&apos;s New
             </Link>
             <Link
-              href="/upload"
+              href="/loginForm"
               className={`px-6 py-2 rounded-lg text-white transition-all ${
-                isActive('/upload')
+                isActive('/loginForm')
                   ? 'bg-blue-700'
                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transform hover:-translate-y-0.5'
               }`}
@@ -118,10 +118,10 @@ const ResponsiveNavbar = () => {
               What&apos;s New
             </Link>
             <Link
-              href="/upload"
+              href="/loginForm"
               onClick={closeMenu}
               className={`block w-full text-center px-6 py-3 text-white rounded-lg transition-all ${
-                isActive('/upload')
+                isActive('/loginForm')
                   ? 'bg-blue-700'
                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg'
               }`}
