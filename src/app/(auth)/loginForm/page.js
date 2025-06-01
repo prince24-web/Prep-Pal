@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 // Import your existing auth functions
- import { signUp, signIn, signInWithGoogle } from '@/utils/auth';
+import { signUp, signIn, signInWithGoogle } from '@/utils/auth';
 
 export default function AuthForm() {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false); // Fix hydration
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -122,27 +124,19 @@ export default function AuthForm() {
       if (isLogin) {
         // Call your signIn function
         console.log('Attempting to sign in...');
-        // result = await signIn(formData.email, formData.password);
-        
-        // Simulate API call for demo
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('Sign in successful!');
+        result = await signIn(formData.email, formData.password);
         
       } else {
         // Call your signUp function
         console.log('Attempting to sign up...');
-        // result = await signUp(formData.email, formData.password, formData.name);
-        
-        // Simulate API call for demo
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('Sign up successful!');
+        result = await signUp(formData.email, formData.password, formData.name);
       }
 
       // Handle successful authentication
-      console.log('Form submitted successfully:', formData);
+      console.log('Authentication successful:', result);
       
-      // Redirect or update UI state here
-      // Example: router.push('/dashboard');
+      // Redirect to dashboard or desired page
+      router.push('/dashboard');
       
     } catch (error) {
       console.error('Authentication error:', error);
@@ -158,6 +152,10 @@ export default function AuthForm() {
         errorMessage = 'Password must be at least 6 characters long';
       } else if (error.message?.includes('Invalid email')) {
         errorMessage = 'Please enter a valid email address';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and confirm your account';
+      } else if (error.message?.includes('Signup requires')) {
+        errorMessage = 'Email confirmation is required. Please check your inbox.';
       }
       
       setErrors(prev => ({ ...prev, auth: errorMessage }));
@@ -173,20 +171,29 @@ export default function AuthForm() {
     try {
       console.log('Attempting Google sign in...');
       // Call your Google sign in function
-      // const result = await signInWithGoogle();
+      const result = await signInWithGoogle();
       
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Google sign in successful!');
+      console.log('Google sign in initiated:', result);
       
       // Handle successful Google authentication
-      // The redirect will be handled by Supabase automatically
+      // Note: For Google OAuth, the redirect will be handled by Supabase automatically
+      // The user will be redirected to the callback URL you configured
       
     } catch (error) {
       console.error('Google sign in error:', error);
+      
+      let errorMessage = 'Failed to sign in with Google. Please try again.';
+      
+      // Handle specific Google OAuth errors
+      if (error.message?.includes('popup_closed_by_user')) {
+        errorMessage = 'Sign in was cancelled. Please try again.';
+      } else if (error.message?.includes('access_denied')) {
+        errorMessage = 'Access denied. Please allow permissions to continue.';
+      }
+      
       setErrors(prev => ({ 
         ...prev, 
-        auth: 'Failed to sign in with Google. Please try again.' 
+        auth: errorMessage
       }));
     } finally {
       setIsGoogleLoading(false);
