@@ -53,28 +53,7 @@ export async function signIn(email, password) {
   }
 }
 
-// Sign In with Google
-export async function signInWithGoogle() {
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      }
-    });
 
-    if (error) throw error;
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Google sign in error:', error);
-    throw error;
-  }
-}
 
 // Sign Out
 export async function signOut() {

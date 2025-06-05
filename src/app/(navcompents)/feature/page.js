@@ -2,6 +2,19 @@ import React from 'react';
 import Link from 'next/link';
 import { Brain, FileText, Zap, BookOpen, HelpCircle, Target, Clock, Shield, Smartphone, Globe, Users, BarChart3, Download, RefreshCw, Search, Star, ArrowRight, CheckCircle } from 'lucide-react';
 
+export const metadata = {
+  title: 'How PrepPal Works – AI Summaries, Quizzes & Flashcards',
+  description: 'Discover how PrepPal transforms your long PDFs into AI-generated summaries, quizzes, and flashcards in seconds.',
+  openGraph: {
+    title: 'PrepPal Features',
+    description: 'Instantly summarize and study smarter with PrepPal’s AI tools.',
+    url: 'https://prep-pal-blond.vercel.app/feature',
+    siteName: 'PrepPal',
+    images: [{ url: '/og-features.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+};
+
 const FeaturesPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">

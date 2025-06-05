@@ -2,6 +2,19 @@ import React from 'react';
 import Link from 'next/link';
 import { Brain, FileText, Zap, Users, Target, Lightbulb, BookOpen, Award, ArrowRight } from 'lucide-react';
 
+export const metadata = {
+  title: 'About PrepPal – Helping Students Learn Smarter with AI',
+  description: 'PrepPal was built to help students summarize and retain information more effectively using AI. Learn about our mission and team.',
+  openGraph: {
+    title: 'About PrepPal',
+    description: 'Built for students. Backed by AI. Learn more about our mission.',
+    url: ' https://prep-pal-blond.vercel.app/about',
+    siteName: 'PrepPal',
+    images: [{ url: '/og-about.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+};
+
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
