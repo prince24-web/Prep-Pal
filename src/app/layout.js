@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "./components/footer";
-import ResponsiveNavbar from "./components/navbar";
+import NavbarWrapper from "./components/NavbarWrapper";
 
 
 const geistSans = Geist({
@@ -65,7 +65,7 @@ export default function RootLayout({ children }) {
         <meta name="twitter:image" content="/preppal-icon.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <ResponsiveNavbar />
+          <NavbarWrapper/>
           {children}
           <Footer />
       </body>

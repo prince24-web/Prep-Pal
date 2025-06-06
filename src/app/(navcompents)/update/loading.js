@@ -1,10 +1,14 @@
 export default function Loading() {
   return (
-    <div className="flex justify-center items-end h-32 w-[300px] mx-auto space-x-2">
-      <div className="w-5 h-2 bg-blue-500 rounded-md animate-wave" />
-      <div className="w-5 h-2 bg-blue-500 rounded-md animate-wave [animation-delay:0.1s]" />
-      <div className="w-5 h-2 bg-blue-500 rounded-md animate-wave [animation-delay:0.2s]" />
-      <div className="w-5 h-2 bg-blue-500 rounded-md animate-wave [animation-delay:0.3s]" />
-    </div>
+     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin">
+              <div className="w-full h-full bg-white rounded-full m-1"></div>
+            </div>
+          </div>
+          <p className="text-lg text-gray-600">hollup let me cook 🤫...</p>
+        </div>
+      </div>
   );
 }
