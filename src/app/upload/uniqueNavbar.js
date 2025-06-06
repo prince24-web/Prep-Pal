@@ -28,6 +28,9 @@ const PrepPalNavbar = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleClick =() =>{
+    router.push('/dashboard')
+  }
   const navItems = [
     { name: 'Home', href: '/',},
     { name: 'Features', href: '/feature' },
@@ -66,7 +69,9 @@ const PrepPalNavbar = () => {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50">
+            <button 
+             onClick={() => router.push('/dashboard')}
+            className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50">
               Dashboard
             </button>
             

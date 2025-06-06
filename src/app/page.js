@@ -1,9 +1,14 @@
 'use client'
 import React, { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Hero from "./components/Hero";
+
 import FeatureSec from "./components/featureSec";
 import CTASection from "./components/CTAsection";
+// in app/page.js or wherever Hero is used
+import dynamic from 'next/dynamic';
+
+const Hero = dynamic(() => import('./components/Hero'), { ssr: false });
+
 
 export default function Home() {
    // ✅ Closing the function properly
