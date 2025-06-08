@@ -1,11 +1,12 @@
 // app/login/page.js
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Brain, Eye, EyeOff, Loader2 } from 'lucide-react';
 
-const LoginPage = () => {
+// Separate component that uses useSearchParams
+const LoginContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
@@ -480,6 +481,25 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Loading fallback component
+const LoginFallback = () => (
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+    <div className="flex items-center space-x-2">
+      <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      <span className="text-gray-600">Loading...</span>
+    </div>
+  </div>
+);
+
+// Main component with Suspense wrapper
+const LoginPage = () => {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 };
 
