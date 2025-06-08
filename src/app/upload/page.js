@@ -1,6 +1,10 @@
 'use client'
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download, LogOut, User } from 'lucide-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../components/ProtectedRoute';
+
 
 const PDFUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -11,6 +15,22 @@ const PDFUploadPage = () => {
   const [results, setResults] = useState(null);
   const [user, setUser] = useState(null);
   const fileInputRef = useRef(null);
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+
+  // Get user info on component mount
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const generationOptions = [
     {
@@ -126,6 +146,7 @@ const PDFUploadPage = () => {
   };
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -455,6 +476,7 @@ const PDFUploadPage = () => {
         }
       `}</style>
     </div>
+    </ProtectedRoute>
   );
 };
 

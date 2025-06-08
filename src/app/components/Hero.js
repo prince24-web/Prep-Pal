@@ -1,9 +1,10 @@
 import React, { useCallback } from "react";
 import { ArrowRight, CheckCircle, FileText, Zap, Brain, BookOpen, Target, Sparkles } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 export default function Hero() {
+   const router = useRouter();
   const handleClick = useCallback(() => {
-    // router.push("/upload"); - Commented out for demo
+     router.push("/upload");
     console.log("Navigate to upload page");
   }, []);
 
