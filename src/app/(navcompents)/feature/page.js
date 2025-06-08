@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Brain, FileText, Zap, BookOpen, HelpCircle, Target, Clock, Shield, Smartphone, Globe, Users, BarChart3, Download, RefreshCw, Search, Star, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from "next/navigation";
 const FeaturesPage = () => {
@@ -456,14 +456,26 @@ const FeaturesPage = () => {
                   Try All Features Free
                   <ArrowRight className="w-5 h-5" />
                 </button>
-                <button className="px-8 py-4 border-2 border-blue-600 text-blue-600 text-lg font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300 hover:scale-105">
+                <button onClick={()=>{ router.push("/pricingpage"); }} className="px-8 py-4 border-2 border-blue-600 text-blue-600 text-lg font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300 hover:scale-105">
                   View Pricing Plans
                 </button>
               </div>
             </div>
           </section>
-
-        
+ {/* Footer */}
+          <footer className="px-6 py-8 bg-gray-900 text-white">
+            <div className="max-w-6xl mx-auto text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center animate-pulse">
+                  <Brain className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-bold">PrepPal</span>
+              </div>
+              <p className="text-gray-400">
+                © 2025 PrepPal. All rights reserved. Transforming learning with AI.
+              </p>
+            </div>
+          </footer>
         </div>
       </div>
     </>

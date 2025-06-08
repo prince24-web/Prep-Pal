@@ -1,10 +1,16 @@
 
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Check, Star, ArrowRight, BookOpen, Brain, FileText, Zap, Shield, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const PricingPage = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const router = useRouter();
+    const handleClick = useCallback(() => {
+       router.push("/upload");
+      console.log("Navigate to upload page");
+    }, []);
 
   const plans = [
     {
@@ -320,7 +326,7 @@ const PricingPage = () => {
             Start your free trial today!
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
-            <button className="bg-white text-blue-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button onClick={handleClick}className="bg-white text-blue-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105">
               Start Free Trial
               <ArrowRight className="inline w-4 h-4 ml-2" />
             </button>

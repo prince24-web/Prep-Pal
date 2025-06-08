@@ -1,11 +1,15 @@
+import { Brain } from "lucide-react"
 export default function Footer(){
     return(
         <footer className="bg-gray-900 text-white py-16">
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                📚 PrepPal
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center animate-pulse">
+                  <Brain className="w-5 h-5 text-white" /> 
+                </div> PrepPal
               </span>
               <p className="mt-4 text-gray-400 leading-relaxed">
                 Empowering students worldwide with AI-powered study tools that make learning more efficient and enjoyable.
