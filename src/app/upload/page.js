@@ -1,10 +1,9 @@
 'use client'
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download, LogOut, User } from 'lucide-react';
+import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download, LogOut, User, AlertCircle } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../components/ProtectedRoute';
-
 
 const PDFUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -14,6 +13,7 @@ const PDFUploadPage = () => {
   const [processingStep, setProcessingStep] = useState(0);
   const [results, setResults] = useState(null);
   const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -69,8 +69,16 @@ const PDFUploadPage = () => {
 
   const handleFileSelect = (file) => {
     if (file && file.type === 'application/pdf') {
+      // Check file size (limit to 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        setError('File size exceeds 50MB limit');
+        return;
+      }
       setUploadedFile(file);
       setResults(null);
+      setError(null);
+    } else {
+      setError('Please select a valid PDF file');
     }
   };
 
@@ -101,41 +109,111 @@ const PDFUploadPage = () => {
     );
   };
 
-  const handleGenerate = async () => {
-    if (!uploadedFile || selectedOptions.length === 0) return;
+ // Replace your handleGenerate function with this debug version
+const handleGenerate = async () => {
+  if (!uploadedFile || selectedOptions.length === 0) return;
 
-    setIsProcessing(true);
-    setProcessingStep(0);
+  setIsProcessing(true);
+  setProcessingStep(0);
+  setError(null);
 
-    // Simulate processing steps
-    for (let i = 0; i < processingSteps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setProcessingStep(i);
+  try {
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('file', uploadedFile);
+    formData.append('options', JSON.stringify(selectedOptions));
+
+    console.log('🚀 Sending request with options:', selectedOptions);
+
+    // Simulate processing steps for UI
+    const progressInterval = setInterval(() => {
+      setProcessingStep(prev => {
+        if (prev < processingSteps.length - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 2000);
+
+    // Make API call
+    const response = await fetch('/api/process-pdf', {
+      method: 'POST',
+      body: formData,
+    });
+
+    clearInterval(progressInterval);
+
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to process PDF');
     }
 
-    // Simulate results
-    const mockResults = {
-      summary: selectedOptions.includes('summary') ? {
-        title: 'Document Summary',
-        content: 'This document covers key concepts in machine learning, including supervised and unsupervised learning algorithms, neural networks, and practical applications in real-world scenarios.'
-      } : null,
-      flashcards: selectedOptions.includes('flashcards') ? {
-        count: 12,
-        cards: [
-          { front: 'What is supervised learning?', back: 'A type of machine learning where the algorithm learns from labeled training data.' },
-          { front: 'Define neural network', back: 'A computational model inspired by biological neural networks...' }
-        ]
-      } : null,
-      quiz: selectedOptions.includes('quiz') ? {
-        questions: 8,
-        topics: ['Machine Learning Basics', 'Neural Networks', 'Applications']
-      } : null
-    };
+    // Get response as text first to see raw response
+    const responseText = await response.text();
+    console.log('📡 Raw response text:', responseText);
+    
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON:', parseError);
+      throw new Error('Invalid JSON response from server');
+    }
+    
+    // 🔍 DETAILED DEBUGGING
+    console.log('📦 Full API Response:', data);
+    console.log('📦 Response keys:', Object.keys(data || {}));
+    console.log('📦 Response success:', data?.success);
+    
+    // Check all possible locations for the actual content
+    if (data?.results) console.log('📦 data.results:', data.results);
+    if (data?.quiz) console.log('📦 data.quiz:', data.quiz);
+    if (data?.summary) console.log('📦 data.summary:', data.summary);
+    if (data?.flashcards) console.log('📦 data.flashcards:', data.flashcards);
+    
+    if (data?.success) {
+      // Try to find the actual content
+      let results = {};
+      
+      // Method 1: Direct properties
+      if (data.quiz) results.quiz = data.quiz;
+      if (data.summary) results.summary = data.summary;
+      if (data.flashcards) results.flashcards = data.flashcards;
+      
+      // Method 2: Under results property
+      if (data.results) {
+        results = { ...results, ...data.results };
+      }
+      
+      // Method 3: The content might be under a different key
+      Object.keys(data).forEach(key => {
+        if (key !== 'success' && key !== 'message' && typeof data[key] === 'object') {
+          console.log(`📦 Found object under key '${key}':`, data[key]);
+        }
+      });
+      
+      console.log('🎯 Final results being set:', results);
+      console.log('🎯 Results is empty?', Object.keys(results).length === 0);
+      
+      // Force set results even if empty for debugging
+      setResults(results.length === 0 ? { debug: 'empty results' } : results);
+      setProcessingStep(processingSteps.length - 1);
+    } else {
+      console.log('❌ Success was false or missing');
+      throw new Error(data?.error || 'Processing failed - success was false');
+    }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setResults(mockResults);
+  } catch (error) {
+    console.error('❌ Processing error:', error);
+    setError(error.message || 'An error occurred while processing your PDF');
+  } finally {
     setIsProcessing(false);
-  };
+  }
+};
 
   const resetUpload = () => {
     setUploadedFile(null);
@@ -143,6 +221,26 @@ const PDFUploadPage = () => {
     setResults(null);
     setIsProcessing(false);
     setProcessingStep(0);
+    setError(null);
+  };
+
+  const downloadContent = (content, filename, type = 'text/plain') => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportFlashcardsToAnki = (flashcards) => {
+    const ankiFormat = flashcards.cards.map(card => 
+      `${card.front}\t${card.back}`
+    ).join('\n');
+    downloadContent(ankiFormat, 'flashcards.txt', 'text/plain');
   };
 
   return (
@@ -199,6 +297,20 @@ const PDFUploadPage = () => {
               Upload your PDF and let our AI create summaries, flashcards, and quizzes
             </p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center animate-fade-in">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
+              <p className="text-red-700">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="ml-auto text-red-500 hover:text-red-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {!isProcessing && !results && (
             <>
@@ -312,7 +424,8 @@ const PDFUploadPage = () => {
                 <div className="text-center animate-fade-in" style={{ animationDelay: '1s' }}>
                   <button
                     onClick={handleGenerate}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-xl font-medium text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl animate-pulse"
+                    disabled={isProcessing}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-xl font-medium text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl animate-pulse disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Zap className="inline w-5 h-5 mr-2" />
                     Generate Study Materials
@@ -379,8 +492,11 @@ const PDFUploadPage = () => {
                       <FileText className="w-6 h-6 text-blue-600 mr-3" />
                       <h3 className="text-xl font-semibold text-gray-900">Smart Summary</h3>
                     </div>
-                    <p className="text-gray-700 mb-6">{results.summary.content}</p>
-                    <button className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors hover:scale-105">
+                    <div className="text-gray-700 mb-6 whitespace-pre-wrap">{results.summary.content}</div>
+                    <button 
+                      onClick={() => downloadContent(results.summary.content, 'summary.txt')}
+                      className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors hover:scale-105"
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Download Summary
                     </button>
@@ -398,7 +514,7 @@ const PDFUploadPage = () => {
                         {results.flashcards.count} cards
                       </span>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    <div className="grid md:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto">
                       {results.flashcards.cards.map((card, index) => (
                         <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                           <p className="font-medium text-gray-900 mb-2">{card.front}</p>
@@ -407,12 +523,12 @@ const PDFUploadPage = () => {
                       ))}
                     </div>
                     <div className="flex space-x-4">
-                      <button className="flex items-center text-purple-600 hover:text-purple-700 font-medium transition-colors hover:scale-105">
+                      <button 
+                        onClick={() => exportFlashcardsToAnki(results.flashcards)}
+                        className="flex items-center text-purple-600 hover:text-purple-700 font-medium transition-colors hover:scale-105"
+                      >
                         <Download className="w-4 h-4 mr-2" />
                         Export to Anki
-                      </button>
-                      <button className="flex items-center text-purple-600 hover:text-purple-700 font-medium transition-colors hover:scale-105">
-                        Start Practice
                       </button>
                     </div>
                   </div>
@@ -439,9 +555,35 @@ const PDFUploadPage = () => {
                         ))}
                       </div>
                     </div>
-                    <button className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105">
-                      Start Quiz
-                    </button>
+                    {results.quiz.questionsData && results.quiz.questionsData.length > 0 && (
+                      <div className="mb-6 max-h-64 overflow-y-auto">
+                        <h4 className="font-medium text-gray-900 mb-3">Preview Questions:</h4>
+                        {results.quiz.questionsData.slice(0, 3).map((q, index) => (
+                          <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
+                            <p className="font-medium text-gray-900 mb-2">{q.question}</p>
+                            <div className="space-y-1">
+                              {q.options.map((option, optIndex) => (
+                                <p key={optIndex} className={`text-sm ${optIndex === q.correct ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                                  {option}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex space-x-4">
+                      <button className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105">
+                        Start Quiz
+                      </button>
+                      <button 
+                        onClick={() => downloadContent(JSON.stringify(results.quiz, null, 2), 'quiz.json', 'application/json')}
+                        className="flex items-center text-pink-600 hover:text-pink-700 font-medium transition-colors hover:scale-105"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Quiz
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
