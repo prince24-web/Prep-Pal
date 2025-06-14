@@ -10,7 +10,7 @@ const PricingPage = () => {
     const handleClick = useCallback(() => {
        router.push("/upload");
       console.log("Navigate to upload page");
-    }, []);
+    }, [router]);
 
   const plans = [
     {

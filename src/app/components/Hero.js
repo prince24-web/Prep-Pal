@@ -6,7 +6,7 @@ export default function Hero() {
   const handleClick = useCallback(() => {
      router.push("/upload");
     console.log("Navigate to upload page");
-  }, []);
+  }, [router]);
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">

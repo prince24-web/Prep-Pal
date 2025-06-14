@@ -14,7 +14,7 @@ const FeaturesPage = () => {
  const handleClick = useCallback(() => {
       router.push("/upload");
      console.log("Navigate to upload page");
-   }, []);
+   }, [router]);
   // Static positions for particles to prevent hydration mismatch
   const particlePositions = [
     { left: 10, top: 20, delay: 1 },
