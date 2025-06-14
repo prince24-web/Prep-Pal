@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { BookOpen, Download, Brain, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ModernFlashcards = ({ flashcardData = null, isLoading = false }) => {
+  // ✅ MOVE ALL HOOKS TO THE TOP - BEFORE ANY CONDITIONAL LOGIC
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [dragStart, setDragStart] = useState(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
   // Default sample data if no flashcardData provided
   const defaultData = {
     count: 6,
@@ -66,12 +73,6 @@ const ModernFlashcards = ({ flashcardData = null, isLoading = false }) => {
       </div>
     );
   }
-
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [dragStart, setDragStart] = useState(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
 
   const currentCard = currentFlashcardData.cards[currentCardIndex];
 

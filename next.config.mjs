@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-      experimental: {
-    serverComponentsExternalPackages: ['pdf-parse']
-  },
+  serverExternalPackages: ['pdf-parse'], // Moved to top level
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push({
