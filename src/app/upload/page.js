@@ -4,6 +4,7 @@ import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download,
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../components/ProtectedRoute';
+import QuizResultsSection from '../components/quiz';
 
 const PDFUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -534,58 +535,10 @@ const handleGenerate = async () => {
                   </div>
                 )}
 
-                {results.quiz && (
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Brain className="w-6 h-6 text-pink-600 mr-3" />
-                        <h3 className="text-xl font-semibold text-gray-900">Practice Quiz</h3>
-                      </div>
-                      <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                        {results.quiz.questions} questions
-                      </span>
-                    </div>
-                    <div className="mb-6">
-                      <p className="text-gray-700 mb-3">Topics covered:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {results.quiz.topics.map((topic, index) => (
-                          <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors">
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    {results.quiz.questionsData && results.quiz.questionsData.length > 0 && (
-                      <div className="mb-6 max-h-64 overflow-y-auto">
-                        <h4 className="font-medium text-gray-900 mb-3">Preview Questions:</h4>
-                        {results.quiz.questionsData.slice(0, 3).map((q, index) => (
-                          <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
-                            <p className="font-medium text-gray-900 mb-2">{q.question}</p>
-                            <div className="space-y-1">
-                              {q.options.map((option, optIndex) => (
-                                <p key={optIndex} className={`text-sm ${optIndex === q.correct ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
-                                  {option}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex space-x-4">
-                      <button className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105">
-                        Start Quiz
-                      </button>
-                      <button 
-                        onClick={() => downloadContent(JSON.stringify(results.quiz, null, 2), 'quiz.json', 'application/json')}
-                        className="flex items-center text-pink-600 hover:text-pink-700 font-medium transition-colors hover:scale-105"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Quiz
-                      </button>
-                    </div>
-                  </div>
-                )}
+            
+      {/* Quiz Section - FIXED */}
+      <QuizResultsSection  results={results} uploadedFile={uploadedFile} onStartQuiz={() => {}}/>
+  
               </div>
 
               <div className="text-center pt-8">
