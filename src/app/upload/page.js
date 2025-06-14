@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../components/ProtectedRoute';
 import QuizResultsSection from '../components/quiz';
+import ModernFlashcards from '../components/flashcard';
 
 const PDFUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -19,6 +20,9 @@ const PDFUploadPage = () => {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
+   // ADD THESE MISSING STATE VARIABLES
+  const [flashcardData, setFlashcardData] = useState(null);
+  const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
   // Get user info on component mount
   React.useEffect(() => {
     const getUser = async () => {
@@ -111,109 +115,121 @@ const PDFUploadPage = () => {
   };
 
  // Replace your handleGenerate function with this debug version
+// Replace your handleGenerate function with this fixed version
 const handleGenerate = async () => {
-  if (!uploadedFile || selectedOptions.length === 0) return;
+    if (!uploadedFile || selectedOptions.length === 0) return;
 
-  setIsProcessing(true);
-  setProcessingStep(0);
-  setError(null);
-
-  try {
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append('file', uploadedFile);
-    formData.append('options', JSON.stringify(selectedOptions));
-
-    console.log('🚀 Sending request with options:', selectedOptions);
-
-    // Simulate processing steps for UI
-    const progressInterval = setInterval(() => {
-      setProcessingStep(prev => {
-        if (prev < processingSteps.length - 1) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 2000);
-
-    // Make API call
-    const response = await fetch('/api/process-pdf', {
-      method: 'POST',
-      body: formData,
-    });
-
-    clearInterval(progressInterval);
-
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response ok:', response.ok);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to process PDF');
+    setIsProcessing(true);
+    setProcessingStep(0);
+    setError(null);
+    
+    // Set loading states for specific components
+    if (selectedOptions.includes('flashcards')) {
+      setIsGeneratingFlashcards(true);
     }
 
-    // Get response as text first to see raw response
-    const responseText = await response.text();
-    console.log('📡 Raw response text:', responseText);
-    
-    // Try to parse as JSON
-    let data;
     try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('❌ Failed to parse JSON:', parseError);
-      throw new Error('Invalid JSON response from server');
-    }
-    
-    // 🔍 DETAILED DEBUGGING
-    console.log('📦 Full API Response:', data);
-    console.log('📦 Response keys:', Object.keys(data || {}));
-    console.log('📦 Response success:', data?.success);
-    
-    // Check all possible locations for the actual content
-    if (data?.results) console.log('📦 data.results:', data.results);
-    if (data?.quiz) console.log('📦 data.quiz:', data.quiz);
-    if (data?.summary) console.log('📦 data.summary:', data.summary);
-    if (data?.flashcards) console.log('📦 data.flashcards:', data.flashcards);
-    
-    if (data?.success) {
-      // Try to find the actual content
-      let results = {};
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+      formData.append('options', JSON.stringify(selectedOptions));
+
+      console.log('🚀 Sending request with options:', selectedOptions);
+
+      // Simulate processing steps for UI
+      const progressInterval = setInterval(() => {
+        setProcessingStep(prev => {
+          if (prev < processingSteps.length - 1) {
+            return prev + 1;
+          }
+          return prev;
+        });
+      }, 2000);
+
+      // Make API call
+      const response = await fetch('/api/process-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process PDF');
+      }
+
+      // Get response as text first to see raw response
+      const responseText = await response.text();
+      console.log('📡 Raw response text:', responseText);
       
-      // Method 1: Direct properties
-      if (data.quiz) results.quiz = data.quiz;
-      if (data.summary) results.summary = data.summary;
-      if (data.flashcards) results.flashcards = data.flashcards;
-      
-      // Method 2: Under results property
-      if (data.results) {
-        results = { ...results, ...data.results };
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse JSON:', parseError);
+        throw new Error('Invalid JSON response from server');
       }
       
-      // Method 3: The content might be under a different key
-      Object.keys(data).forEach(key => {
-        if (key !== 'success' && key !== 'message' && typeof data[key] === 'object') {
-          console.log(`📦 Found object under key '${key}':`, data[key]);
+      // 🔍 DETAILED DEBUGGING
+      console.log('📦 Full API Response:', data);
+      console.log('📦 Response keys:', Object.keys(data || {}));
+      console.log('📦 Response success:', data?.success);
+      
+      // Check all possible locations for the actual content
+      if (data?.results) console.log('📦 data.results:', data.results);
+      if (data?.quiz) console.log('📦 data.quiz:', data.quiz);
+      if (data?.summary) console.log('📦 data.summary:', data.summary);
+      if (data?.flashcards) console.log('📦 data.flashcards:', data.flashcards);
+      
+      if (data?.success) {
+        // Try to find the actual content
+        let results = {};
+        
+        // Method 1: Direct properties
+        if (data.quiz) results.quiz = data.quiz;
+        if (data.summary) results.summary = data.summary;
+        if (data.flashcards || data.results?.flashcards) {
+            const flashcardsData = data.flashcards || data.results.flashcards;
+            console.log('🎴 Setting flashcard data:', flashcardsData);
+            setFlashcardData(flashcardsData);
         }
-      });
-      
-      console.log('🎯 Final results being set:', results);
-      console.log('🎯 Results is empty?', Object.keys(results).length === 0);
-      
-      // Force set results even if empty for debugging
-      setResults(results.length === 0 ? { debug: 'empty results' } : results);
-      setProcessingStep(processingSteps.length - 1);
-    } else {
-      console.log('❌ Success was false or missing');
-      throw new Error(data?.error || 'Processing failed - success was false');
-    }
+        
+        // Method 2: Under results property
+        if (data.results) {
+          results = { ...results, ...data.results };
+        }
+        
+        // Method 3: The content might be under a different key
+        Object.keys(data).forEach(key => {
+          if (key !== 'success' && key !== 'message' && typeof data[key] === 'object') {
+            console.log(`📦 Found object under key '${key}':`, data[key]);
+          }
+        });
+        
+        console.log('🎯 Final results being set:', results);
+        console.log('🎯 Results is empty?', Object.keys(results).length === 0);
+        
+        // Force set results even if empty for debugging
+        setResults(Object.keys(results).length === 0 ? { debug: 'empty results' } : results);
+        setProcessingStep(processingSteps.length - 1);
+      } else {
+        console.log('❌ Success was false or missing');
+        throw new Error(data?.error || 'Processing failed - success was false');
+      }
 
-  } catch (error) {
-    console.error('❌ Processing error:', error);
-    setError(error.message || 'An error occurred while processing your PDF');
-  } finally {
-    setIsProcessing(false);
-  }
+    } catch (error) {
+      console.error('❌ Processing error:', error);
+      setError(error.message || 'An error occurred while processing your PDF');
+    } finally {
+      setIsProcessing(false);
+      // 🔧 FIX: Always reset flashcard loading state
+      setIsGeneratingFlashcards(false);
+    }
 };
 
   const resetUpload = () => {
@@ -504,36 +520,14 @@ const handleGenerate = async () => {
                   </div>
                 )}
 
-                {results.flashcards && (
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <BookOpen className="w-6 h-6 text-purple-600 mr-3" />
-                        <h3 className="text-xl font-semibold text-gray-900">Flashcards</h3>
-                      </div>
-                      <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                        {results.flashcards.count} cards
-                      </span>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto">
-                      {results.flashcards.cards.map((card, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <p className="font-medium text-gray-900 mb-2">{card.front}</p>
-                          <p className="text-gray-600 text-sm">{card.back}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex space-x-4">
-                      <button 
-                        onClick={() => exportFlashcardsToAnki(results.flashcards)}
-                        className="flex items-center text-purple-600 hover:text-purple-700 font-medium transition-colors hover:scale-105"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Export to Anki
-                      </button>
-                    </div>
-                  </div>
-                )}
+                 {/* Show flashcards when results are available */}
+         {/* Flashcards component */}
+      {selectedOptions.includes('flashcards') && (
+  <ModernFlashcards
+    flashcardData={flashcardData} 
+    isLoading={isGeneratingFlashcards} 
+  />
+)}
 
             
       {/* Quiz Section - FIXED */}
