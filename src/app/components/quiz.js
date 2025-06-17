@@ -455,7 +455,7 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz, isLoading = fa
           <div className="text-center">
             <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Quiz Data Available</h3>
-            <p className="text-gray-600">Upload a PDF and select 'Quiz' to generate practice questions.</p>
+            <p className="text-gray-600">Upload a PDF and select &apos;Quiz&apos; to generate practice questions.</p>
           </div>
         </div>
       </div>
@@ -470,7 +470,7 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz, isLoading = fa
           <div className="text-center">
             <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Quiz Not Available</h3>
-            <p className="text-gray-600">No quiz was generated. Please ensure 'Quiz' option was selected during processing.</p>
+            <p className="text-gray-600">No quiz was generated. Please ensure &apos;Quiz&apos; option was selected during processing.</p>
           </div>
         </div>
       </div>
