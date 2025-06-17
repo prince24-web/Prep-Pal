@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw, Trophy, Target, Clock, Download, Star } from 'lucide-react';
+import { Brain, CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw, Trophy, Target, Clock, Download, Star, Loader2 } from 'lucide-react';
 
 const InteractiveQuiz = ({ quizData, onClose, fileName }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -407,11 +407,47 @@ const InteractiveQuiz = ({ quizData, onClose, fileName }) => {
   );
 };
 
-// Updated Quiz Results component for your main PDF page with error handling
-const QuizResultsSection = ({ results, uploadedFile, onStartQuiz }) => {
+// UPDATED: Enhanced Quiz Results component with proper API integration
+const QuizResultsSection = ({ results, uploadedFile, onStartQuiz, isLoading = false, error = null }) => {
   const [showQuiz, setShowQuiz] = useState(false);
 
-  // Error handling - check if results or quiz data is available
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-purple-600 mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Generating Quiz...</h3>
+            <p className="text-gray-600">Please wait while we create your practice quiz.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center justify-center">
+          <div className="text-center">
+            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Quiz Generation Failed</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No results yet
   if (!results) {
     return (
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
@@ -419,46 +455,77 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz }) => {
           <div className="text-center">
             <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Quiz Data Available</h3>
-            <p className="text-gray-600">Quiz results are still loading or not available.</p>
+            <p className="text-gray-600">Upload a PDF and select 'Quiz' to generate practice questions.</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // No quiz in results
   if (!results.quiz) {
     return (
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="text-center">
             <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Quiz Not Generated</h3>
-            <p className="text-gray-600">Unable to generate quiz from the uploaded content.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Quiz Not Available</h3>
+            <p className="text-gray-600">No quiz was generated. Please ensure 'Quiz' option was selected during processing.</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Check if quiz has the required structure
+  // Check if quiz has the required structure - CRITICAL VALIDATION
   if (!results.quiz.questionsData || !Array.isArray(results.quiz.questionsData) || results.quiz.questionsData.length === 0) {
     return (
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="text-center">
-            <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Invalid Quiz Data</h3>
-            <p className="text-gray-600">The quiz data is incomplete or malformed.</p>
+            <p className="text-gray-600">The quiz data is incomplete. Please try regenerating the quiz.</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Validate each question has required fields
+  const validQuestions = results.quiz.questionsData.filter(q => 
+    q.question && 
+    Array.isArray(q.options) && 
+    q.options.length === 4 && 
+    typeof q.correct === 'number' && 
+    q.correct >= 0 && 
+    q.correct <= 3
+  );
+
+  if (validQuestions.length === 0) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center justify-center">
+          <div className="text-center">
+            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Invalid Question Format</h3>
+            <p className="text-gray-600">The quiz questions are not properly formatted. Please regenerate the quiz.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Update quiz data with validated questions
+  const validatedQuiz = {
+    ...results.quiz,
+    questionsData: validQuestions
+  };
+
   if (showQuiz) {
     return (
       <InteractiveQuiz 
-        quizData={results.quiz}
+        quizData={validatedQuiz}
         onClose={() => setShowQuiz(false)}
         fileName={uploadedFile?.name}
       />
@@ -466,9 +533,8 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz }) => {
   }
 
   // Safe access to quiz properties with fallbacks
-  const topics = results.quiz.topics || [];
-  const questionsCount = results.quiz.questionsData?.length || 0;
-  const questionsDisplay = results.quiz.questions || questionsCount;
+  const topics = results.quiz.topics || ["General Topics"];
+  const questionsCount = validQuestions.length;
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -478,48 +544,38 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz }) => {
           <h3 className="text-xl font-semibold text-gray-900">Practice Quiz</h3>
         </div>
         <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-          {questionsDisplay} questions
+          {questionsCount} questions
         </span>
       </div>
       
       <div className="mb-6">
         <p className="text-gray-700 mb-3">Topics covered:</p>
         <div className="flex flex-wrap gap-2">
-          {topics.length > 0 ? (
-            topics.map((topic, index) => (
-              <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors">
-                {topic}
-              </span>
-            ))
-          ) : (
-            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-              General Topics
+          {topics.map((topic, index) => (
+            <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors">
+              {topic}
             </span>
-          )}
+          ))}
         </div>
       </div>
 
       {/* Preview Questions */}
-      {results.quiz.questionsData && results.quiz.questionsData.length > 0 && (
-        <div className="mb-6 max-h-64 overflow-y-auto">
-          <h4 className="font-medium text-gray-900 mb-3">Preview Questions:</h4>
-          {results.quiz.questionsData.slice(0, 2).map((q, index) => (
-            <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-900 mb-2">{q.question || 'Question not available'}</p>
-              <div className="space-y-1">
-                {(q.options || []).slice(0, 2).map((option, optIndex) => (
-                  <p key={optIndex} className="text-sm text-gray-600">
-                    {String.fromCharCode(65 + optIndex)}) {option}
-                  </p>
-                ))}
-                {q.options && q.options.length > 2 && (
-                  <p className="text-xs text-gray-500">... and {q.options.length - 2} more options</p>
-                )}
-              </div>
+      <div className="mb-6 max-h-64 overflow-y-auto">
+        <h4 className="font-medium text-gray-900 mb-3">Preview Questions:</h4>
+        {validQuestions.slice(0, 2).map((q, index) => (
+          <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <p className="font-medium text-gray-900 mb-2">{q.question}</p>
+            <div className="space-y-1">
+              {q.options.slice(0, 2).map((option, optIndex) => (
+                <p key={optIndex} className="text-sm text-gray-600">
+                  {String.fromCharCode(65 + optIndex)}) {option}
+                </p>
+              ))}
+              <p className="text-xs text-gray-500">... and 2 more options</p>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       <div className="flex space-x-4">
         <button 
@@ -531,11 +587,11 @@ const QuizResultsSection = ({ results, uploadedFile, onStartQuiz }) => {
         </button>
         <button 
           onClick={() => {
-            const blob = new Blob([JSON.stringify(results.quiz, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(validatedQuiz, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'quiz.json';
+            a.download = `quiz-${uploadedFile?.name || 'questions'}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

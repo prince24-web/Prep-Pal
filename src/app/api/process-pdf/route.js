@@ -1,349 +1,349 @@
-// app/api/process-pdf/route.js
+// Fixed API route - paste-2.txt replacement
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import pdf from 'pdf-parse';
+import { 
+  preprocessText, 
+  chunkText, 
+  validatePDFContent, 
+  estimateProcessingTime 
+} from '../../lib/pdfUtils';
 
-// Add debug logging at the top level
-console.log('API route file loaded');
-console.log('Environment check:', {
-  hasGeminiKey: !!process.env.GEMINI_API_KEY,
-  nodeEnv: process.env.NODE_ENV
-});
-
-// Import with error handling
-let GoogleGenerativeAI, pdf, preprocessText, validatePDFContent, chunkText;
-
-try {
-  const geminiModule = await import('@google/generative-ai');
-  GoogleGenerativeAI = geminiModule.GoogleGenerativeAI;
-  console.log('✅ GoogleGenerativeAI imported successfully');
-} catch (error) {
-  console.error('❌ Failed to import GoogleGenerativeAI:', error.message);
-}
-
-try {
-  const pdfModule = await import('pdf-parse');
-  pdf = pdfModule.default;
-  console.log('✅ pdf-parse imported successfully');
-} catch (error) {
-  console.error('❌ Failed to import pdf-parse:', error.message);
-}
-
-try {
-  const utilsModule = await import('../../lib/pdfUtils');
-  preprocessText = utilsModule.preprocessText;
-  validatePDFContent = utilsModule.validatePDFContent;
-  chunkText = utilsModule.chunkText;
-  console.log('✅ pdfUtils imported successfully');
-} catch (error) {
-  console.error('❌ Failed to import pdfUtils:', error.message);
-  console.log('Creating fallback functions...');
-  
-  // Fallback functions if pdfUtils doesn't exist
-  preprocessText = (text) => text.trim();
-  validatePDFContent = (text) => {
-    if (!text || text.length < 100) {
-      throw new Error('PDF content is too short or empty');
-    }
-  };
-  chunkText = (text, size = 5000) => {
-    const chunks = [];
-    for (let i = 0; i < text.length; i += size) {
-      chunks.push(text.slice(i, i + size));
-    }
-    return chunks;
-  };
-}
-
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-
-// AI Generation Functions
-async function generateSummary(model, text) {
-  console.log('🧠 Generating summary...');
-  const prompt = `Please provide a comprehensive summary of the following text. Focus on key concepts, main ideas, and important details that would be useful for studying:
-
-${text}
-
-Summary:`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const summary = response.text();
-    console.log('✅ Summary generated successfully');
-    return {
-      content: summary,
-      wordCount: summary.split(' ').length
-    };
-  } catch (error) {
-    console.error('❌ Summary generation error:', error);
-    throw new Error('Failed to generate summary: ' + error.message);
-  }
-}
-
-async function generateFlashcards(model, text) {
-  console.log('🧠 Generating flashcards...');
-  const prompt = `Create flashcards from the following text. Generate 10-15 flashcards with clear, concise questions on the front and detailed answers on the back. Format as JSON array with objects containing "front" and "back" properties:
-
-${text}
-
-Flashcards (JSON format):`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let flashcardsText = response.text();
-    
-    // Clean up the response to extract JSON
-    flashcardsText = flashcardsText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    let flashcardsData;
-    try {
-      flashcardsData = JSON.parse(flashcardsText);
-    } catch (parseError) {
-      // If JSON parsing fails, try to extract flashcards manually
-      console.log('JSON parsing failed, attempting manual extraction...');
-      flashcardsData = extractFlashcardsFromText(flashcardsText);
-    }
-    
-    if (!Array.isArray(flashcardsData)) {
-      throw new Error('Invalid flashcards format');
-    }
-    
-    console.log('✅ Flashcards generated successfully');
-    return {
-      cards: flashcardsData,
-      count: flashcardsData.length
-    };
-  } catch (error) {
-    console.error('❌ Flashcards generation error:', error);
-    throw new Error('Failed to generate flashcards: ' + error.message);
-  }
-}
-
-async function generateQuiz(model, text) {
-  console.log('🧠 Generating quiz...');
-  const prompt = `Create a quiz from the following text. Generate 8-12 multiple choice questions with 4 options each. Also identify 3-5 main topics covered. Format as JSON with this structure:
-{
-  "questions": [
-    {
-      "question": "Question text",
-      "options": ["A", "B", "C", "D"],
-      "correct": 0
-    }
-  ],
-  "topics": ["topic1", "topic2", "topic3"]
-}
-
-Text:
-${text}
-
-Quiz (JSON format):`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let quizText = response.text();
-    
-    // Clean up the response to extract JSON
-    quizText = quizText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    let quizData;
-    try {
-      quizData = JSON.parse(quizText);
-    } catch (parseError) {
-      console.log('JSON parsing failed, attempting manual extraction...');
-      quizData = extractQuizFromText(quizText);
-    }
-    
-    if (!quizData.questions || !Array.isArray(quizData.questions)) {
-      throw new Error('Invalid quiz format');
-    }
-    
-    console.log('✅ Quiz generated successfully');
-    return {
-      questionsData: quizData.questions,
-      questions: quizData.questions.length,
-      topics: quizData.topics || ['General Knowledge']
-    };
-  } catch (error) {
-    console.error('❌ Quiz generation error:', error);
-    throw new Error('Failed to generate quiz: ' + error.message);
-  }
-}
-
-// Fallback extraction functions
-function extractFlashcardsFromText(text) {
-  const flashcards = [];
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  for (let i = 0; i < lines.length; i += 2) {
-    if (lines[i] && lines[i + 1]) {
-      flashcards.push({
-        front: lines[i].replace(/^\d+\.\s*/, '').trim(),
-        back: lines[i + 1].trim()
-      });
-    }
-  }
-  
-  return flashcards.length > 0 ? flashcards : [
-    { front: "Sample Question", back: "Sample Answer" }
-  ];
-}
-
-function extractQuizFromText(text) {
-  return {
-    questions: [
-      {
-        question: "Sample Quiz Question",
-        options: ["Option A", "Option B", "Option C", "Option D"],
-        correct: 0
-      }
-    ],
-    topics: ["General Knowledge"]
-  };
-}
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function POST(request) {
-  console.log('🚀 POST request received');
-  
   try {
-    // Environment validation
-    console.log('Step 1: Checking environment...');
-    if (!process.env.GEMINI_API_KEY) {
-      console.error('❌ Gemini API key not configured');
-      return NextResponse.json(
-        { error: 'Gemini API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Check if imports worked
-    if (!GoogleGenerativeAI || !pdf) {
-      console.error('❌ Required modules not available');
-      return NextResponse.json(
-        { error: 'Server configuration error - missing dependencies' },
-        { status: 500 }
-      );
-    }
-
-    // Parse form data
-    console.log('Step 2: Parsing form data...');
-    const formData = await request.formData();
-    const file = formData.get('file');
-    const options = JSON.parse(formData.get('options') || '[]');
+    console.log('🚀 Starting PDF processing...');
     
-    console.log('File info:', { name: file?.name, size: file?.size, type: file?.type });
-    console.log('Options:', options);
-
-    // Validate input
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    // Parse request body
+    const { filePath, fileName, options } = await request.json();
+    
+    if (!filePath || !options || !Array.isArray(options)) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields: filePath, options' },
+        { status: 400 }
+      );
     }
 
-    if (!options || options.length === 0) {
-      return NextResponse.json({ error: 'No processing options selected' }, { status: 400 });
+    console.log('📋 Processing options:', options);
+    console.log('📁 File path:', filePath);
+
+    // Properly await cookies before using
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    });
+
+    // Step 1: Download file from Supabase Storage
+    console.log('📥 Downloading file from Supabase Storage...');
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('documents')
+      .download(filePath);
+
+    if (downloadError) {
+      console.error('❌ Download error:', downloadError);
+      return NextResponse.json(
+        { success: false, error: `Failed to download file: ${downloadError.message}` },
+        { status: 500 }
+      );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: 'File size exceeds 50MB limit' }, { status: 400 });
-    }
+    // Step 2: Convert Blob to Buffer for PDF parsing
+    console.log('🔄 Converting file to buffer...');
+    const arrayBuffer = await fileData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Only PDF files are supported' }, { status: 400 });
-    }
-
-    // Convert file to buffer
-    console.log('Step 3: Converting file to buffer...');
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    // Extract text from PDF
-    console.log('Step 4: Extracting text from PDF...');
+    // Step 3: Extract and clean text from PDF
+    console.log('📄 Extracting text from PDF...');
     const pdfData = await pdf(buffer);
     const rawText = pdfData.text;
+
+    if (!rawText || rawText.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No text could be extracted from the PDF' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`📊 Extracted ${rawText.length} characters from PDF`);
     
-    console.log('PDF text length:', rawText.length);
-
-    // Validate and preprocess text
-    validatePDFContent(rawText);
-    const processedText = preprocessText(rawText);
+    // Step 4: Clean and preprocess the extracted text
+    console.log('🧹 Preprocessing PDF text...');
+    const preprocessedText = preprocessText(rawText);
     
-    // Truncate text if too long (Gemini has limits)
-    const maxTextLength = 30000; // Adjust based on your needs
-    const finalText = processedText.length > maxTextLength 
-      ? processedText.substring(0, maxTextLength) + '...'
-      : processedText;
+    // Step 5: Validate PDF content quality
+    console.log('✅ Validating PDF content...');
+    try {
+      validatePDFContent(preprocessedText);
+    } catch (validationError) {
+      return NextResponse.json(
+        { success: false, error: validationError.message },
+        { status: 400 }
+      );
+    }
+    
+    console.log(`✨ Preprocessed text: ${preprocessedText.length} characters`);
+    console.log(`⏱️ Processing document directly (no chunking)`);
 
-    // Initialize AI model
-    console.log('Step 5: Initializing AI model...');
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    // Generate content based on selected options
-    console.log('Step 6: Generating content...');
+    // Step 7: Process with Gemini AI based on selected options
     const results = {};
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Process each selected option
-    const promises = [];
+    // Process each selected option with rate limit handling
+    for (const option of options) {
+      console.log(`🤖 Processing ${option}...`);
+      
+      try {
+        switch (option) {
+          case 'summary':
+            results.summary = await generateSummaryDirect(model, preprocessedText);
+            break;
+          case 'flashcards':
+            results.flashcards = await generateFlashcardsDirect(model, preprocessedText);
+            break;
+          case 'quiz':
+            results.quiz = await generateQuizDirect(model, preprocessedText);
+            break;
+          default:
+            console.warn(`⚠️ Unknown option: ${option}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error processing ${option}:`, error);
+        
+        // Handle rate limits specifically
+        if (error.status === 429) {
+          return NextResponse.json({
+            success: false,
+            error: 'Rate limit exceeded. Please wait 30 seconds and try again.',
+            retryAfter: 30
+          }, { status: 429 });
+        }
+        
+        // Continue with other options even if one fails
+        results[option] = { error: `Failed to generate ${option}: ${error.message}` };
+      }
+    }
+
+    console.log('✅ Processing completed successfully');
     
-    if (options.includes('summary')) {
-      promises.push(
-        generateSummary(model, finalText)
-          .then(summary => { results.summary = summary; })
-          .catch(error => console.error('Summary generation failed:', error))
-      );
-    }
-
-    if (options.includes('flashcards')) {
-      promises.push(
-        generateFlashcards(model, finalText)
-          .then(flashcards => { results.flashcards = flashcards; })
-          .catch(error => console.error('Flashcards generation failed:', error))
-      );
-    }
-
-    if (options.includes('quiz')) {
-      promises.push(
-        generateQuiz(model, finalText)
-          .then(quiz => { results.quiz = quiz; })
-          .catch(error => console.error('Quiz generation failed:', error))
-      );
-    }
-
-    // Wait for all generations to complete
-    await Promise.all(promises);
-
-    console.log('✅ Content generation completed');
-    console.log('Results keys:', Object.keys(results));
-
-    // Return the results
     return NextResponse.json({
       success: true,
-      message: 'PDF processed successfully',
-      results: results,
-      // Also include results at root level for compatibility
-      ...results
+      ...results,
+      fileName,
+      processedAt: new Date().toISOString(),
+      textLength: preprocessedText.length
     });
 
   } catch (error) {
-    console.error('💥 Unexpected error in API route:', error);
+    console.error('❌ API Route Error:', error);
     return NextResponse.json(
       { 
-        error: 'An unexpected error occurred while processing your PDF', 
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        success: false, 
+        error: error.message || 'An unexpected error occurred while processing your PDF' 
       },
       { status: 500 }
     );
   }
 }
 
-// Add a simple GET handler for testing
-export async function GET() {
-  console.log('GET request to /api/process-pdf');
-  return NextResponse.json({ 
-    message: 'PDF processing API is running',
-    timestamp: new Date().toISOString(),
-    environment: {
-      hasGeminiKey: !!process.env.GEMINI_API_KEY,
-      nodeEnv: process.env.NODE_ENV
+// Direct summary generation without chunking
+async function generateSummaryDirect(model, text) {
+  const maxLength = 100000;
+  const inputText = text.length > maxLength 
+    ? text.substring(0, maxLength) + '...[content truncated for processing]'
+    : text;
+    
+  console.log(`📝 Processing entire document (${inputText.length} characters)`);
+  
+  const prompt = `
+    Please analyze the following document and create a comprehensive, well-structured summary.
+    
+    Requirements:
+    - Create 3-5 main sections with clear headings
+    - Include key concepts, definitions, and important details
+    - Use bullet points for clarity where appropriate
+    - Keep it concise but comprehensive (300-500 words)
+    - Focus on the most important information for studying
+    
+    Document content:
+    ${inputText}
+  `;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  return response.text();
+}
+
+// Direct flashcard generation without chunking
+async function generateFlashcardsDirect(model, text) {
+  const maxLength = 80000;
+  const inputText = text.length > maxLength 
+    ? text.substring(0, maxLength) + '...[content truncated]'
+    : text;
+    
+  console.log(`🎴 Processing entire document for flashcards (${inputText.length} characters)`);
+  
+  const prompt = `
+    Create flashcards from the following document content. 
+    
+    Requirements:
+    - Generate 15-20 flashcards from the entire document
+    - Focus on key concepts, definitions, formulas, and important facts
+    - Questions should be clear and concise
+    - Answers should be comprehensive but not too long
+    - Include a mix of definition, concept, and application questions
+    
+    Return the response in this exact JSON format:
+    {
+      "cards": [
+        {
+          "front": "Question or term",
+          "back": "Answer or definition",
+          "category": "concept/definition/application"
+        }
+      ]
     }
-  });
+    
+    Document content:
+    ${inputText}
+  `;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const responseText = response.text();
+  
+  try {
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      if (data.cards && Array.isArray(data.cards)) {
+        const finalCards = data.cards.map((card, index) => ({
+          id: index + 1,
+          ...card
+        }));
+        
+        return {
+          title: `Flashcards (${finalCards.length} cards)`,
+          cards: finalCards
+        };
+      }
+    }
+    throw new Error('Invalid flashcard format');
+  } catch (parseError) {
+    console.error(`❌ Failed to parse flashcards:`, parseError);
+    return {
+      title: "Flashcards",
+      cards: [{
+        id: 1,     
+        front: "Unable to generate flashcards",
+        back: "There was an error processing the content for flashcards.",
+        category: "error"
+      }]
+    };
+  }
+}
+
+// FIXED: Quiz generation that matches the React component's expected format
+async function generateQuizDirect(model, text) {
+  const maxLength = 80000;
+  const inputText = text.length > maxLength 
+    ? text.substring(0, maxLength) + '...[content truncated]'
+    : text;
+    
+  console.log(`❓ Processing entire document for quiz (${inputText.length} characters)`);
+  
+  const prompt = `
+    Create a comprehensive quiz from the following document content.
+    
+    Requirements:
+    - Generate 12-15 multiple choice questions
+    - Include questions of varying difficulty (easy, medium, hard)
+    - Focus on key concepts and important details
+    - Each question should have 4 options
+    - Identify key topics covered in the document
+    
+    Return the response in this EXACT JSON format (this is critical for proper integration):
+    {
+      "topics": ["Topic 1", "Topic 2", "Topic 3"],
+      "questionsData": [
+        {
+          "question": "Question text here?",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correct": 0,
+          "explanation": "Explanation of why this answer is correct"
+        }
+      ]
+    }
+    
+    IMPORTANT: 
+    - "correct" should be the index (0, 1, 2, or 3) of the correct answer
+    - "topics" should be an array of main topics/subjects covered
+    - "questionsData" should contain all questions
+    
+    Document content:
+    ${inputText}
+  `;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const responseText = response.text();
+  
+  try {
+    // Clean up the response to extract JSON
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsedData = JSON.parse(jsonMatch[0]);
+      
+      // Validate the structure matches what InteractiveQuiz expects
+      if (!parsedData.topics || !Array.isArray(parsedData.topics)) {
+        parsedData.topics = ["General Topics"];
+      }
+      
+      if (!parsedData.questionsData || !Array.isArray(parsedData.questionsData)) {
+        throw new Error('No valid questions data found');
+      }
+      
+      // Validate each question has the required structure
+      parsedData.questionsData = parsedData.questionsData.map((q, index) => ({
+        question: q.question || `Question ${index + 1}`,
+        options: Array.isArray(q.options) && q.options.length === 4 
+          ? q.options 
+          : ["Option A", "Option B", "Option C", "Option D"],
+        correct: typeof q.correct === 'number' && q.correct >= 0 && q.correct <= 3 
+          ? q.correct 
+          : 0,
+        explanation: q.explanation || "No explanation provided"
+      }));
+      
+      console.log(`✅ Generated quiz with ${parsedData.questionsData.length} questions and topics: ${parsedData.topics.join(', ')}`);
+      return parsedData;
+      
+    } else {
+      throw new Error('No valid JSON found in response');
+    }
+  } catch (parseError) {
+    console.error('❌ Failed to parse quiz JSON:', parseError);
+    console.error('❌ Raw response:', responseText);
+    
+    // Return a fallback structure that matches InteractiveQuiz expectations
+    return {
+      topics: ["General Topics"],
+      questionsData: [
+        {
+          question: "Unable to generate quiz questions from the document. Please try again.",
+          options: [
+            "There was an error processing the content", 
+            "Please try uploading the document again", 
+            "Contact support if this persists", 
+            "Check your internet connection"
+          ],
+          correct: 1,
+          explanation: "There was an error processing the content for quiz questions. Please try again or contact support."
+        }
+      ]
+    };
+  }
 }

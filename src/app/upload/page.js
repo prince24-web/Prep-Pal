@@ -12,6 +12,7 @@ const PDFUploadPage = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // NEW: Track upload state
   const [processingStep, setProcessingStep] = useState(0);
   const [results, setResults] = useState(null);
   const [user, setUser] = useState(null);
@@ -23,6 +24,7 @@ const PDFUploadPage = () => {
    // ADD THESE MISSING STATE VARIABLES
   const [flashcardData, setFlashcardData] = useState(null);
   const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
+  
   // Get user info on component mount
   React.useEffect(() => {
     const getUser = async () => {
@@ -64,7 +66,9 @@ const PDFUploadPage = () => {
     }
   ];
 
+  // UPDATED: More detailed processing steps
   const processingSteps = [
+    'Uploading PDF to secure storage...',
     'Analyzing PDF structure...',
     'Extracting text content...',
     'Processing with AI...',
@@ -114,12 +118,32 @@ const PDFUploadPage = () => {
     );
   };
 
- // Replace your handleGenerate function with this debug version
-// Replace your handleGenerate function with this fixed version
-const handleGenerate = async () => {
+  // UPDATED: New upload function for Supabase Storage
+  const uploadToSupabase = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `pdfs/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('documents') // Make sure this bucket exists in Supabase
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    return data.path;
+  };
+
+  // UPDATED: New handleGenerate function with Supabase Storage flow
+  const handleGenerate = async () => {
     if (!uploadedFile || selectedOptions.length === 0) return;
 
     setIsProcessing(true);
+    setIsUploading(true);
     setProcessingStep(0);
     setError(null);
     
@@ -129,14 +153,9 @@ const handleGenerate = async () => {
     }
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('file', uploadedFile);
-      formData.append('options', JSON.stringify(selectedOptions));
+      console.log('🚀 Starting PDF processing with options:', selectedOptions);
 
-      console.log('🚀 Sending request with options:', selectedOptions);
-
-      // Simulate processing steps for UI
+      // Simulate processing steps for UI - more frequent updates
       const progressInterval = setInterval(() => {
         setProcessingStep(prev => {
           if (prev < processingSteps.length - 1) {
@@ -144,12 +163,28 @@ const handleGenerate = async () => {
           }
           return prev;
         });
-      }, 2000);
+      }, 1500);
 
-      // Make API call
+      // Step 1: Upload to Supabase Storage
+      console.log('📤 Uploading to Supabase Storage...');
+      const filePath = await uploadToSupabase(uploadedFile);
+      console.log('✅ File uploaded successfully:', filePath);
+      
+      setIsUploading(false);
+      setProcessingStep(1); // Move to next step
+
+      // Step 2: Process via API route with file path
+      console.log('🤖 Processing with AI...');
       const response = await fetch('/api/process-pdf', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filePath: filePath,
+          fileName: uploadedFile.name,
+          options: selectedOptions
+        }),
       });
 
       clearInterval(progressInterval);
@@ -162,63 +197,39 @@ const handleGenerate = async () => {
         throw new Error(errorData.error || 'Failed to process PDF');
       }
 
-      // Get response as text first to see raw response
-      const responseText = await response.text();
-      console.log('📡 Raw response text:', responseText);
+      const data = await response.json();
       
-      // Try to parse as JSON
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Failed to parse JSON:', parseError);
-        throw new Error('Invalid JSON response from server');
-      }
-      
-      // 🔍 DETAILED DEBUGGING
       console.log('📦 Full API Response:', data);
-      console.log('📦 Response keys:', Object.keys(data || {}));
       console.log('📦 Response success:', data?.success);
       
-      // Check all possible locations for the actual content
-      if (data?.results) console.log('📦 data.results:', data.results);
-      if (data?.quiz) console.log('📦 data.quiz:', data.quiz);
-      if (data?.summary) console.log('📦 data.summary:', data.summary);
-      if (data?.flashcards) console.log('📦 data.flashcards:', data.flashcards);
-      
       if (data?.success) {
-        // Try to find the actual content
-        let results = {};
+        // Process the results
+        let processedResults = {};
         
-        // Method 1: Direct properties
-        if (data.quiz) results.quiz = data.quiz;
-        if (data.summary) results.summary = data.summary;
-        if (data.flashcards || data.results?.flashcards) {
-            const flashcardsData = data.flashcards || data.results.flashcards;
-            console.log('🎴 Setting flashcard data:', flashcardsData);
-            setFlashcardData(flashcardsData);
+        // Handle summary
+        if (data.summary) {
+          processedResults.summary = {
+            content: data.summary
+          };
         }
         
-        // Method 2: Under results property
-        if (data.results) {
-          results = { ...results, ...data.results };
+        // Handle flashcards
+        if (data.flashcards) {
+          console.log('🎴 Setting flashcard data:', data.flashcards);
+          setFlashcardData(data.flashcards);
+          processedResults.flashcards = data.flashcards;
         }
         
-        // Method 3: The content might be under a different key
-        Object.keys(data).forEach(key => {
-          if (key !== 'success' && key !== 'message' && typeof data[key] === 'object') {
-            console.log(`📦 Found object under key '${key}':`, data[key]);
-          }
-        });
+        // Handle quiz
+        if (data.quiz) {
+          processedResults.quiz = data.quiz;
+        }
         
-        console.log('🎯 Final results being set:', results);
-        console.log('🎯 Results is empty?', Object.keys(results).length === 0);
-        
-        // Force set results even if empty for debugging
-        setResults(Object.keys(results).length === 0 ? { debug: 'empty results' } : results);
+        console.log('🎯 Final results being set:', processedResults);
+        setResults(processedResults);
         setProcessingStep(processingSteps.length - 1);
+        
       } else {
-        console.log('❌ Success was false or missing');
         throw new Error(data?.error || 'Processing failed - success was false');
       }
 
@@ -227,18 +238,20 @@ const handleGenerate = async () => {
       setError(error.message || 'An error occurred while processing your PDF');
     } finally {
       setIsProcessing(false);
-      // 🔧 FIX: Always reset flashcard loading state
+      setIsUploading(false);
       setIsGeneratingFlashcards(false);
     }
-};
+  };
 
   const resetUpload = () => {
     setUploadedFile(null);
     setSelectedOptions([]);
     setResults(null);
     setIsProcessing(false);
+    setIsUploading(false);
     setProcessingStep(0);
     setError(null);
+    setFlashcardData(null);
   };
 
   const downloadContent = (content, filename, type = 'text/plain') => {
@@ -458,7 +471,7 @@ const handleGenerate = async () => {
             </>
           )}
 
-          {/* Processing State */}
+          {/* Processing State - UPDATED with upload status */}
           {isProcessing && (
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 text-center shadow-xl animate-fade-in">
               <div className="w-24 h-24 mx-auto mb-8 relative">
@@ -466,11 +479,15 @@ const handleGenerate = async () => {
                   <div className="w-full h-full bg-white rounded-full m-1"></div>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Brain className="w-8 h-8 text-blue-600 animate-pulse" />
+                  {isUploading ? (
+                    <Upload className="w-8 h-8 text-blue-600 animate-bounce" />
+                  ) : (
+                    <Brain className="w-8 h-8 text-blue-600 animate-pulse" />
+                  )}
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Processing Your PDF
+                {isUploading ? 'Uploading Your PDF' : 'Processing Your PDF'}
               </h2>
               <p className="text-lg text-gray-600 mb-8 animate-pulse">
                 {processingSteps[processingStep]}
@@ -520,19 +537,18 @@ const handleGenerate = async () => {
                   </div>
                 )}
 
-                 {/* Show flashcards when results are available */}
-         {/* Flashcards component */}
-      {selectedOptions.includes('flashcards') && (
-  <ModernFlashcards
-    flashcardData={flashcardData} 
-    isLoading={isGeneratingFlashcards} 
-  />
-)}
-
+                {/* Show flashcards when results are available */}
+                {selectedOptions.includes('flashcards') && (
+                  <ModernFlashcards
+                    flashcardData={flashcardData} 
+                    isLoading={isGeneratingFlashcards} 
+                  />
+                )}
             
-      {/* Quiz Section - FIXED */}
-      <QuizResultsSection  results={results} uploadedFile={uploadedFile} onStartQuiz={() => {}}/>
-  
+                {/* Quiz Section */}
+
+
+                <QuizResultsSection results={results} uploadedFile={uploadedFile} onStartQuiz={() => {}}/>
               </div>
 
               <div className="text-center pt-8">
