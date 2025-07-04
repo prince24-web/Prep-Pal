@@ -1,31 +1,30 @@
 {
-  "name": "prep-pal",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@heroicons/react": "^2.2.0",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.10",
-    "framer-motion": "^12.12.1",
-    "lucide-react": "^0.511.0",
-    "next": "15.3.1",
-    "pdf-parse": "^1.1.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "tailwindcss": "^4"
-  }
+    "name": "backend",
+    "version": "1.0.0",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "dev": "nodemon server.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@supabase/supabase-js": "^2.50.2",
+        "axios": "^1.10.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.6.1",
+        "express": "^5.1.0",
+        "multer": "^2.0.1",
+        "openai": "^5.8.2",
+        "pdf-parse": "^1.1.1",
+        "uuid": "^11.1.0",
+        "youtube-captions-scraper": "^2.0.3",
+        "youtube-dl-exec": "^3.0.22",
+        "youtube-transcript": "^1.2.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.10"
+    }
 }
