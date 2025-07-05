@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+Here's a concise explanation you can paste into your README file for your teammates, outlining the estimated generation capabilities within a 20,000-token budget:
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### AI Content Generation Estimates (20,000 Token Budget)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This document outlines the approximate number of content pieces that can be generated from PDF files using our AI system, based on a 20,000-token budget. These are estimates, and actual token usage can vary slightly depending on the specific content density of the PDFs and the exact nature of the AI's output.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**General Assumptions:**
+* **PDF Page Content:** A typical single-spaced PDF page is estimated to be 400-500 words, translating to roughly 500-700 tokens for AI input.
+* **Flashcard/Quiz Item Length:** Individual flashcards or quiz questions (including options and correct answers) are estimated to be 20-50 tokens each.
+* **Summaries:** Summaries are generally 10-20% of the original content's length.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+#### **1. Summarizing PDF Pages**
 
-To learn more about Next.js, take a look at the following resources:
+With a 20,000-token budget, the AI can summarize approximately:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* **27 to 30 pages** of PDF content.
+    * *(This assumes generating concise summaries, around 10-20% of the original text length.)*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+#### **2. Generating Flashcards from a 10-Page PDF**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+When generating flashcards from a single 10-page PDF, a significant portion of the budget goes towards the AI reading the entire document (approx. 5,000-7,000 tokens). The remaining tokens are used for the flashcard output.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+From **one 10-page PDF**, within a 20,000-token budget, you could generate approximately:
+
+* **260 to 1,300 flashcards.**
+    * *(The number varies greatly depending on the desired conciseness/detail of each flashcard. A higher number implies very brief Q&A pairs.)*
+
+---
+
+#### **3. Generating 15-Question Multi-Choice Quizzes from 10-Page PDFs**
+
+If each 15-question quiz is generated from a *different* 10-page PDF (meaning the AI re-reads a new 10-page document for each quiz), a 20,000-token budget allows for approximately:
+
+* **2 full 15-question multi-choice quizzes.**
+    * *(Each such quiz, including input and output, costs around 7,750 tokens.)*
+
+---
+
+**Important Note on Token Usage:**
+
+The primary driver of token cost is the **size of the input PDF document**. The AI must process the entire document to extract relevant information, even if the final output (summary, flashcard, quiz) is relatively short. If you generate multiple items from the *same* large PDF, the input cost for reading the PDF might only be incurred once, making subsequent generations from that document much more token-efficient.
+
+---
+
+Here's an updated version for your README file, explaining the estimated generation capabilities with a **1,000,000 token budget**:
+
+---
+
+### AI Content Generation Estimates (1,000,000 Token Budget)
+
+This document outlines the approximate number of content pieces that can be generated from PDF files using our AI system, based on a **1,000,000-token budget**. These are estimates, and actual token usage can vary slightly depending on the specific content density of the PDFs and the exact nature of the AI's output.
+
+**General Assumptions:**
+* **PDF Page Content:** A typical single-spaced PDF page is estimated to be 400-500 words, translating to roughly 500-700 tokens for AI input.
+* **Flashcard/Quiz Item Length:** Individual flashcards or quiz questions (including options and correct answers) are estimated to be 20-50 tokens each.
+* **Summaries:** Summaries are generally 10-20% of the original content's length.
+
+---
+
+#### **1. Summarizing PDF Pages**
+
+With a 1,000,000-token budget, the AI can summarize approximately:
+
+* **1,364 to 1,365 pages** of PDF content.
+    * *(This assumes generating concise summaries, around 10-20% of the original text length. Each 1-page summary costs approximately 733 tokens.)*
+
+---
+
+#### **2. Generating Flashcards from PDF Pages**
+
+When generating flashcards, a significant portion of the budget goes towards the AI reading the source document.
+
+* **From 1-Page PDFs (generating 1 flashcard per page):**
+    * You could generate approximately **1,333 individual flashcards**, each sourced from a different 1-page PDF.
+        * *(Each such generation costs around 750 tokens.)*
+
+* **From 10-Page PDFs (generating a set of 10 flashcards per 10-page PDF):**
+    * You could generate approximately **139 to 140 sets of 10 flashcards**, with each set sourced from a different 10-page PDF.
+        * *(Each set (10 flashcards from 10 pages) costs around 7,167 tokens.)*
+
+---
+
+#### **3. Generating Multi-Choice Quizzes from PDF Pages**
+
+Similar to flashcards, the primary cost for quizzes comes from the AI reading the source PDF.
+
+* **15-Question Quizzes from 1-Page PDFs:**
+    * You could generate approximately **689 to 690 15-question multi-choice quizzes**, with each quiz sourced from a different 1-page PDF.
+        * *(Each 15-question quiz from a 1-page PDF costs around 1,450 tokens.)*
+
+* **15-Question Quizzes from 10-Page PDFs:**
+    * You could generate approximately **129 15-question multi-choice quizzes**, with each quiz sourced from a different 10-page PDF.
+        * *(Each 15-question quiz from a 10-page PDF costs around 7,750 tokens.)*
+
+---
+
+**Important Note on Token Usage:**
+
+The primary driver of token cost is the **size of the input PDF document**. The AI must process the entire document to extract relevant information, even if the final output (summary, flashcard, quiz) is relatively short. If you generate multiple items from the *same* large PDF, the input cost for reading the PDF might only be incurred once, making subsequent generations from that document much more token-efficient.
+
+---
