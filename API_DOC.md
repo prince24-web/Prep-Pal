@@ -182,6 +182,150 @@ Handles Google OAuth callback and redirects with tokens.
 }
 ```
 
+### Update Current User
+
+**PATCH** `/user/me/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+
+```json
+{
+    "email": "newemail@example.com",
+    "username": "new_username"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "Authorized user updated successfully.",
+        "user": {
+            "id": "uuid",
+            "email": "newemail@example.com",
+            "username": "new_username",
+            "updated_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Delete Current User
+
+**DELETE** `/user/me/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User deleted successfully.",
+        "id": "uuid"
+    }
+}
+```
+
+### Get All Users (Admin Only)
+
+**GET** `/user/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "All users retrieved successfully.",
+        "users": [
+            {
+                "id": "uuid",
+                "email": "user@example.com",
+                "created_at": "2024-01-01T00:00:00.000Z"
+            }
+        ]
+    }
+}
+```
+
+### Get User by ID (Admin Only)
+
+**GET** `/user/{id}`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User retrieved successfully.",
+        "id": "uuid",
+        "user": {
+            "id": "uuid",
+            "email": "user@example.com",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Update User by ID (Admin Only)
+
+**PATCH** `/user/{id}`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+
+```json
+{
+    "email": "updated@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User updated successfully.",
+        "updatedUser": {
+            "id": "uuid",
+            "email": "updated@example.com"
+        }
+    }
+}
+```
+
+### Delete User by ID (Admin Only)
+
+**DELETE** `/user/{id}`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User deleted successfully.",
+        "id": "uuid"
+    }
+}
+```
+
 ---
 
 ## 🪙 Token Management Routes
@@ -330,13 +474,13 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Generate PDF Summary
 
-**GET** `/summarize/pdf/{upload_id}`
+**GET** `/summarize/pdf/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
 **Path Parameters:**
 
--   `upload_id` - ID of the uploaded PDF file
+-   `id` - ID of the uploaded PDF file
 
 **Response:**
 
@@ -352,13 +496,13 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Generate YouTube Summary
 
-**GET** `/summarize/youtube/{upload_id}`
+**GET** `/summarize/youtube/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
 **Path Parameters:**
 
--   `upload_id` - ID of the uploaded YouTube video
+-   `id` - ID of the uploaded YouTube video
 
 **Response:**
 
@@ -417,13 +561,13 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Generate PDF Flashcards
 
-**GET** `/flashcards/pdf/{upload_id}`
+**GET** `/flashcards/pdf/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
 **Path Parameters:**
 
--   `upload_id` - ID of the uploaded PDF file
+-   `id` - ID of the uploaded PDF file
 
 **Response:**
 
@@ -447,13 +591,13 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Generate YouTube Flashcards
 
-**GET** `/flashcards/youtube/{upload_id}`
+**GET** `/flashcards/youtube/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
 **Path Parameters:**
 
--   `upload_id` - ID of the uploaded YouTube video
+-   `id` - ID of the uploaded YouTube video
 
 **Response:**
 
@@ -510,6 +654,286 @@ Handles Google OAuth callback and redirects with tokens.
                 "created_at": "2024-01-01T00:00:00.000Z"
             }
         ]
+    }
+}
+```
+
+---
+
+## 💳 Payment Routes
+
+### Create Payment
+
+**POST** `/payment/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+
+```json
+{
+    "amount": 29.99,
+    "currency": "USD",
+    "payment_method": "stripe",
+    "status": "pending"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "Payment record created successfully.",
+        "payment": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "amount": 29.99,
+            "currency": "USD",
+            "payment_method": "stripe",
+            "status": "pending",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Get Payment
+
+**GET** `/payment/{id}`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "Payment retrieved successfully.",
+        "payment": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "amount": 29.99,
+            "currency": "USD",
+            "payment_method": "stripe",
+            "status": "completed",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Get All Payments
+
+**GET** `/payment/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "All Payments retrieved successfully.",
+        "payments": [
+            {
+                "id": "uuid",
+                "user_id": "uuid",
+                "amount": 29.99,
+                "currency": "USD",
+                "payment_method": "stripe",
+                "status": "completed",
+                "created_at": "2024-01-01T00:00:00.000Z"
+            }
+        ]
+    }
+}
+```
+
+### Update Payment
+
+**PATCH** `/payment/{id}`
+
+**Request Body:**
+
+```json
+{
+    "status": "completed",
+    "transaction_id": "txn_123456789"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User updated successfully.",
+        "updatedPayment": {
+            "id": "uuid",
+            "status": "completed",
+            "transaction_id": "txn_123456789"
+        }
+    }
+}
+```
+
+### Delete Payment
+
+**DELETE** `/payment/{id}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User deleted successfully.",
+        "id": "uuid"
+    }
+}
+```
+
+---
+
+## 📋 Subscription Routes
+
+### Create Subscription
+
+**POST** `/subscription/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+
+```json
+{
+    "plan_type": "premium",
+    "status": "active",
+    "start_date": "2024-01-01T00:00:00.000Z",
+    "end_date": "2024-02-01T00:00:00.000Z"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "Subscription record created successfully.",
+        "Subscription": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "plan_type": "premium",
+            "status": "active",
+            "start_date": "2024-01-01T00:00:00.000Z",
+            "end_date": "2024-02-01T00:00:00.000Z",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Get Subscription
+
+**GET** `/subscription/{id}`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "Subscription retrieved successfully.",
+        "Subscription": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "plan_type": "premium",
+            "status": "active",
+            "start_date": "2024-01-01T00:00:00.000Z",
+            "end_date": "2024-02-01T00:00:00.000Z",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Get All Subscriptions
+
+**GET** `/subscription/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "All Subscriptions retrieved successfully.",
+        "Subscriptions": [
+            {
+                "id": "uuid",
+                "user_id": "uuid",
+                "plan_type": "premium",
+                "status": "active",
+                "start_date": "2024-01-01T00:00:00.000Z",
+                "end_date": "2024-02-01T00:00:00.000Z",
+                "created_at": "2024-01-01T00:00:00.000Z"
+            }
+        ]
+    }
+}
+```
+
+### Update Subscription
+
+**PATCH** `/subscription/{id}`
+
+**Request Body:**
+
+```json
+{
+    "status": "cancelled",
+    "end_date": "2024-01-15T00:00:00.000Z"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User updated successfully.",
+        "updatedSubscription": {
+            "id": "uuid",
+            "status": "cancelled",
+            "end_date": "2024-01-15T00:00:00.000Z"
+        }
+    }
+}
+```
+
+### Delete Subscription
+
+**DELETE** `/subscription/{id}`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User deleted successfully.",
+        "id": "uuid"
     }
 }
 ```
@@ -616,6 +1040,36 @@ const useTokens = async (amount, token) => {
 };
 ```
 
+#### Payment and Subscription Management
+
+```javascript
+// Create payment
+const createPayment = async (paymentData, token) => {
+    const response = await fetch("/api/payment/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(paymentData),
+    });
+    return response.json();
+};
+
+// Create subscription
+const createSubscription = async (subscriptionData, token) => {
+    const response = await fetch("/api/subscription/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(subscriptionData),
+    });
+    return response.json();
+};
+```
+
 ---
 
 ## 🚨 Important Notes
@@ -627,3 +1081,5 @@ const useTokens = async (amount, token) => {
 5. **Error Handling:** Always handle potential errors and check response status codes
 6. **Rate Limiting:** Be mindful of API usage and implement appropriate retry logic
 7. **Storage:** Generated files (summaries/flashcards) are stored as compressed files and need to be decompressed when downloaded
+8. **Admin Routes:** Some user management routes require admin privileges
+9. **Payment & Subscription:** Payment and subscription routes are available for managing user billing and subscription status
