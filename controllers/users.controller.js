@@ -13,5 +13,34 @@ const getUser = asyncWrapper(async (req, res, next) => {
     });
 });
 
-const usersController = { getUser };
+const getAllUsers = asyncWrapper(async (req, res, next) => {
+    const allUsers = await usersCrud.getAll();
+    res.status(200).json({
+        status: "success",
+        data: { msg: "All users retrieved successfully.", users: allUsers },
+    });
+});
+
+const updateUserById = asyncWrapper(async (req, res, next) => {
+    const updatedUser = await usersCrud.update(req.user.id, req.body);
+    res.status(200).json({
+        status: "success",
+        data: { msg: "User updated successfully.", updatedUser },
+    });
+});
+
+const deleteUserById = asyncWrapper(async (req, res, next) => {
+    await usersCrud.remove(req.user.id);
+    res.status(200).json({
+        status: "success",
+        data: { msg: "User deleted successfully.", id: req.user.id },
+    });
+});
+
+const usersController = {
+    getUser,
+    getAllUsers,
+    updateUserById,
+    deleteUserById,
+};
 export default usersController;
