@@ -13,6 +13,14 @@ const getUser = asyncWrapper(async (req, res, next) => {
     });
 });
 
+const getUserById = asyncWrapper(async (req, res, next) => {
+    const user = await usersCrud.getOne(req.params.id);
+    res.status(200).json({
+        status: "success",
+        data: { msg: "User retrieved successfully.", id: req.params.id, user },
+    });
+});
+
 const getAllUsers = asyncWrapper(async (req, res, next) => {
     const allUsers = await usersCrud.getAll();
     res.status(200).json({
@@ -39,6 +47,7 @@ const deleteUserById = asyncWrapper(async (req, res, next) => {
 
 const usersController = {
     getUser,
+    getUserById,
     getAllUsers,
     updateUserById,
     deleteUserById,
