@@ -30,7 +30,6 @@ export default function Home() {
       {/* Footer */}
       <footer className="px-6 py-8 bg-gray-50 border-t border-gray-200">
         <div className="max-w-6xl mx-auto text-center text-gray-600">
-          <p>&copy; 2025 PrepPal. All rights reserved.</p>
         </div>
       </footer>
     </div>

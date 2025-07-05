@@ -19,10 +19,10 @@ const PricingPage = () => {
       price: { monthly: 0, annual: 0 },
       popular: false,
       features: [
-        "3 PDF uploads per month",
-        "Basic text summarization",
-        "10 flashcards per month",
-        "5 quiz questions per month",
+        "10 credits per month",
+        "30 pages summarization per month",
+        "20 flashcards per month",
+        "2 sets quiz questions per month",
         "Standard processing speed"
       ],
       limitations: [
@@ -33,20 +33,20 @@ const PricingPage = () => {
       ctaStyle: "border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
     },
     {
-      name: "Pro",
+      name: "Starter",
       description: "For serious students and professionals",
-      price: { monthly: 4.99, annual: 3.99 },
+      price: { monthly: 3.99, annual: 2.99 },
       popular: true,
       features: [
         "Unlimited PDF uploads",
         "AI-powered smart summaries",
-        "Unlimited flashcards",
-        "Unlimited quizzes",
+        "1300 pages of pdf",
+        "140 sets of 10-flashcards",
+        "120 quizzes",
         "Priority processing",
         "Advanced quiz types",
         "Export to Anki",
         "Study analytics",
-        "Dark mode",
         "Email support"
       ],
       limitations: [],
@@ -54,20 +54,17 @@ const PricingPage = () => {
       ctaStyle: "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
     },
     {
-      name: "Teams",
+      name: "Pro",
       description: "For study groups and educational institutions",
-      price: { monthly: 9.99, annual: 7.99 },
+      price: { monthly: 5.99, annual: 4.49 },
       popular: false,
       features: [
-        "Everything in Pro",
-        "Up to 10 team members",
-        "Shared study materials",
-        "Team progress tracking",
-        "Bulk PDF processing",
+        "Unlimited pages, flashcard, and quizzes",
+        "Adaptive Quiz Mode",
+        "Multi-language summaries & quiz",
+        "Detailed progress tracking",
         "Advanced analytics",
-        "Priority support",
-        "Admin dashboard",
-    
+        "Priority live chat support",
       ],
       limitations: [],
       cta: "Start Team Trial",

@@ -148,11 +148,11 @@ export default function Hero() {
             <div className="flex items-center gap-8 pt-4 animate-fade-in-up" style={{animationDelay: '0.9s'}}>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-gray-600">No credit card required</span>
+                <span className="text-gray-600">get 10 free credit</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-gray-600">Free forever plan</span>
+                <span className="text-gray-600">save hours of study</span>
               </div>
             </div>
           </div>

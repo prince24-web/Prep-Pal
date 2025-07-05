@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Brain, FileText, Zap, Users, Target, Lightbulb, BookOpen, Award, ArrowRight } from 'lucide-react';
+import HowItWorks from '@/app/components/Howitworks';
 
 export const metadata = {
   title: 'About PrepPal – Helping Students Learn Smarter with AI',
@@ -31,7 +32,8 @@ const AboutPage = () => {
           </p>
         </div>
       </section>
-
+      {/* How It Works */}
+        <HowItWorks/>
       {/* Mission Section */}
       <section className="px-6 py-16 bg-white/50">
         <div className="max-w-6xl mx-auto">
@@ -69,47 +71,6 @@ const AboutPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="px-6 py-16">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">How PrepPal Works</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <FileText className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">1. Upload Your PDF</h3>
-              <p className="text-gray-600">
-                Simply drag and drop your study materials, textbooks, or research papers. 
-                Our system accepts any PDF format.
-              </p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Brain className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">2. AI Processing</h3>
-              <p className="text-gray-600">
-                Our advanced AI analyzes your content, identifying key concepts, 
-                important facts, and learning objectives automatically.
-              </p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <BookOpen className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">3. Study Materials</h3>
-              <p className="text-gray-600">
-                Get instant access to AI-generated summaries, interactive quizzes, 
-                and flashcards tailored to your content.
-              </p>
             </div>
           </div>
         </div>
