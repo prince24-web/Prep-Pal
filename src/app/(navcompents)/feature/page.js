@@ -54,10 +54,11 @@ const FeaturesPage = () => {
     },
     { 
       icon: Download, 
-      title: "Export Options", 
-      desc: "Export your summaries, quizzes, and flashcards in multiple formats for offline study.", 
+      title: "Export to Anki", 
+      desc: "Easily export your flashcards to Anki for powerful spaced repetition learning.", 
       gradient: "from-cyan-500 to-blue-500"
     },
+
     { 
       icon: RefreshCw, 
       title: "Auto-Sync", 
