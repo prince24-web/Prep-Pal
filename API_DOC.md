@@ -232,9 +232,46 @@ Handles Google OAuth callback and redirects with tokens.
 }
 ```
 
+---
+
+## 🛠️ Admin Routes
+
+### Create User (Admin Only)
+
+**POST** `/admin/users/`
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+
+```json
+{
+    "email": "newuser@example.com",
+    "username": "new_user",
+    "password": "securepassword123"
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "msg": "User created successfully.",
+        "user": {
+            "id": "uuid",
+            "email": "newuser@example.com",
+            "username": "new_user",
+            "created_at": "2024-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
 ### Get All Users (Admin Only)
 
-**GET** `/user/`
+**GET** `/admin/users/`
 
 **Headers:** `Authorization: Bearer {token}`
 
@@ -258,7 +295,7 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Get User by ID (Admin Only)
 
-**GET** `/user/{id}`
+**GET** `/admin/users/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
@@ -281,7 +318,7 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Update User by ID (Admin Only)
 
-**PATCH** `/user/{id}`
+**PATCH** `/admin/users/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
@@ -310,7 +347,7 @@ Handles Google OAuth callback and redirects with tokens.
 
 ### Delete User by ID (Admin Only)
 
-**DELETE** `/user/{id}`
+**DELETE** `/admin/users/{id}`
 
 **Headers:** `Authorization: Bearer {token}`
 
@@ -757,6 +794,8 @@ Handles Google OAuth callback and redirects with tokens.
 
 **PATCH** `/payment/{id}`
 
+**Headers:** `Authorization: Bearer {token}`
+
 **Request Body:**
 
 ```json
@@ -772,7 +811,7 @@ Handles Google OAuth callback and redirects with tokens.
 {
     "status": "success",
     "data": {
-        "msg": "User updated successfully.",
+        "msg": "Payment updated successfully.",
         "updatedPayment": {
             "id": "uuid",
             "status": "completed",
@@ -786,13 +825,15 @@ Handles Google OAuth callback and redirects with tokens.
 
 **DELETE** `/payment/{id}`
 
+**Headers:** `Authorization: Bearer {token}`
+
 **Response:**
 
 ```json
 {
     "status": "success",
     "data": {
-        "msg": "User deleted successfully.",
+        "msg": "Payment deleted successfully.",
         "id": "uuid"
     }
 }
@@ -897,6 +938,8 @@ Handles Google OAuth callback and redirects with tokens.
 
 **PATCH** `/subscription/{id}`
 
+**Headers:** `Authorization: Bearer {token}`
+
 **Request Body:**
 
 ```json
@@ -912,7 +955,7 @@ Handles Google OAuth callback and redirects with tokens.
 {
     "status": "success",
     "data": {
-        "msg": "User updated successfully.",
+        "msg": "Subscription updated successfully.",
         "updatedSubscription": {
             "id": "uuid",
             "status": "cancelled",
@@ -926,13 +969,15 @@ Handles Google OAuth callback and redirects with tokens.
 
 **DELETE** `/subscription/{id}`
 
+**Headers:** `Authorization: Bearer {token}`
+
 **Response:**
 
 ```json
 {
     "status": "success",
     "data": {
-        "msg": "User deleted successfully.",
+        "msg": "Subscription deleted successfully.",
         "id": "uuid"
     }
 }
