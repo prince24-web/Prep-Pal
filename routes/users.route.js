@@ -1,6 +1,5 @@
 import { Router } from "express";
 import protect from "../middlewares/authMiddleware.js";
-import adminOnly from "../middlewares/adminOnly.js";
 
 const router = Router();
 
@@ -13,11 +12,5 @@ router
     .get(protect, usersController.getUser)
     .patch(protect, usersController.updateUser)
     .delete(protect, usersController.deleteUser);
-router.get("/", protect, adminOnly, usersController.getAllUsers);
-router
-    .route("/:id")
-    .get(protect, usersController.getUserById)
-    .patch(protect, adminOnly, usersController.updateUserById)
-    .delete(protect, adminOnly, usersController.deleteUserById);
 
 export default router;

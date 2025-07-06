@@ -3,6 +3,26 @@ import asyncWrapper from "../utils/asyncWrapper.js";
 
 const usersCrud = createCrudHandlers("users");
 
+const createUser = asyncWrapper(async (req, res, next) => {
+    const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email: req.body.email,
+            password: req.body.password,
+            username: req.body.username,
+        }),
+    });
+    const { data } = response.json();
+    const userId = data.registeredUser.id;
+    const { password, ...updates } = req.body;
+    const user = usersCrud.update(userId, updates);
+    res.status(201).json({
+        status: "success",
+        data: { msg: "User created successfully.", user },
+    });
+});
+
 const getUser = asyncWrapper(async (req, res, next) => {
     res.status(200).json({
         status: "success",
@@ -65,6 +85,7 @@ const deleteUserById = asyncWrapper(async (req, res, next) => {
 });
 
 const usersController = {
+    createUser,
     getUser,
     updateUser,
     deleteUser,
