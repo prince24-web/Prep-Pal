@@ -9,6 +9,7 @@ import summariesRoutes from "./summaries.route.js";
 import flashcardsRoutes from "./flashcards.route.js";
 import paymentsRoutes from "./payments.route.js";
 import subscriptionsRoutes from "./subscriptions.route.js";
+import adminRoutes from "./admin.route.js";
 
 router.use("/auth/", authRoutes);
 router.use("/user/", usersRoutes);
@@ -17,5 +18,6 @@ router.use("/summarize/", summariesRoutes);
 router.use("/flashcards/", flashcardsRoutes);
 router.use("/payment/", paymentsRoutes);
 router.use("/subscription/", subscriptionsRoutes);
+router.use("/admin/", adminRoutes);
 
 export default router;
