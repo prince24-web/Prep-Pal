@@ -2,9 +2,10 @@ import createCrudHandlers from "../utils/crudFactory.js";
 import asyncWrapper from "../utils/asyncWrapper.js";
 
 const usersCrud = createCrudHandlers("users");
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000/api";
 
 const createUser = asyncWrapper(async (req, res, next) => {
-    const response = await fetch("/api/auth/register", {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -13,10 +14,10 @@ const createUser = asyncWrapper(async (req, res, next) => {
             username: req.body.username,
         }),
     });
-    const { data } = response.json();
-    const userId = data.registeredUser.id;
+    const result = await response.json();
+    const userId = result.data.registeredUser.id;
     const { password, ...updates } = req.body;
-    const user = usersCrud.update(userId, updates);
+    const user = await usersCrud.update(userId, updates);
     res.status(201).json({
         status: "success",
         data: { msg: "User created successfully.", user },
