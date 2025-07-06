@@ -62,7 +62,8 @@ const getUserById = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllUsers = asyncWrapper(async (req, res, next) => {
-    const allUsers = await usersCrud.getAll();
+    const options = {};
+    const allUsers = await usersCrud.getAll(options);
     res.status(200).json({
         status: "success",
         data: { msg: "All users retrieved successfully.", users: allUsers },
