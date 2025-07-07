@@ -14,7 +14,7 @@ const createSubscription = asyncWrapper(async (req, res, next) => {
     });
 });
 
-const getSubscription = asyncWrapper(async (req, res, next) => {
+const getSubscriptionById = asyncWrapper(async (req, res, next) => {
     const Subscription = await subscriptionsCrud.getOne(req.params.id);
     res.status(200).json({
         status: "success",
@@ -55,11 +55,43 @@ const deleteSubscriptionById = asyncWrapper(async (req, res, next) => {
     });
 });
 
+const getUserSubscription = asyncWrapper(async (req, res, next) => {
+    const userId = req.user.id;
+    const subscription = subscriptionsCrud.getAll({
+        limit: 1,
+        orderBy: { column: "created_at", ascending: false },
+        filter: [
+            { op: "eq", column: "user_id", value: userId },
+            {
+                op: "gte",
+                column: "created_at",
+                value: new Date().setDate(new Date().getDate() - 30),
+            },
+        ],
+    });
+    if (subscription) res.status(200).json({ status: "success" });
+    else next(new CreateError("User doesn't have any subscriptions.", 404));
+});
+
+const createUserSubscription = asyncWrapper(async (req, res, next) => {
+    const userId = req.user.id;
+    const subscription = await subscriptionsCrud.create({
+        ...req.body,
+        user_id: userId,
+    });
+    res.status(201).json({
+        status: "success",
+        data: { msg: "User subscription created successfully.", subscription },
+    });
+});
+
 const subscriptionsController = {
     createSubscription,
-    getSubscription,
     getAllSubscriptions,
+    getSubscriptionById,
     updateSubscriptionById,
     deleteSubscriptionById,
+    getUserSubscription,
+    createUserSubscription,
 };
 export default subscriptionsController;

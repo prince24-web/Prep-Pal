@@ -21,6 +21,20 @@ router
     .get(usersController.getAllUsers)
     .post(usersController.createUser);
 
+// =====================
+// === Subscriptions ===
+// =====================
+import subscriptionsController from "../controllers/subscriptions.controller.js";
+router
+    .route("/subscriptions/:id")
+    .get(subscriptionsController.getSubscriptionById)
+    .patch(subscriptionsController.updateSubscriptionById)
+    .delete(subscriptionsController.deleteSubscriptionById);
+router
+    .route("/subscriptions")
+    .get(subscriptionsController.getAllSubscriptions)
+    .post(subscriptionsController.createSubscription);
+
 // ==============
 // === Export ===
 // ==============
