@@ -5,8 +5,7 @@ const router = Router();
 
 import tokensRoutes from "./tokens.route.js";
 import usersController from "../controllers/users.controller.js";
-
-router.use("/tokens/", tokensRoutes);
+router.use("/me/tokens/", tokensRoutes);
 router
     .route("/me/")
     .get(protect, usersController.getUser)
