@@ -5,7 +5,7 @@ const createCrudHandlers = (table, user = {}) => ({
         let query = supabase.from(table).select("*");
         if (user && user.id) query = query.eq("user_id", user.id);
 
-        const { page, pageSize, limit, offset, orderBy } = options;
+        const { page, pageSize, limit, offset, orderBy, filter = {} } = options;
 
         if (page && pageSize) {
             const calculatedOffset = (page - 1) * pageSize;
@@ -33,6 +33,45 @@ const createCrudHandlers = (table, user = {}) => ({
                 query = query.order(orderBy.column, {
                     ascending: orderBy.ascending || true,
                 });
+            }
+        }
+
+        if (filter) {
+            function filterQuery(filter) {
+                if (filter.op && filter.column && filter.value) {
+                    switch (filter.op) {
+                        case "eq":
+                            query = query.eq(filter.column, filter.value);
+                        case "neq":
+                            query = query.neq(filter.column, filter.value);
+                        case "gt":
+                            query = query.gt(filter.column, filter.value);
+                        case "gte":
+                            query = query.gte(filter.column, filter.value);
+                        case "lt":
+                            query = query.lt(filter.column, filter.value);
+                        case "lte":
+                            query = query.lte(filter.column, filter.value);
+                        case "is":
+                            query = query.is(filter.column, filter.value);
+                        case "in":
+                            query = query.in(filter.column, filter.value);
+                        default:
+                            throw new CreateError(
+                                "Invalid supabase operator.",
+                                403
+                            );
+                    }
+                } else {
+                    throw new CreateError("Invalid filter object", 400);
+                }
+            }
+            if (Array.isArray(filter)) {
+                filter.forEach((f) => {
+                    filterQuery(f);
+                });
+            } else {
+                filterQuery(filter);
             }
         }
 
