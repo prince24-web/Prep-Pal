@@ -51,7 +51,17 @@ const summarizeTextChunks = async (chunks) => {
     const summaries = [];
 
     for (const chunk of chunks) {
-        const prompt = `Summarize the following educational text for students, I want you to output the summary only, without any extra text:\n\n${chunk}`;
+        const prompt = `
+        Please analyze the following document and create a comprehensive, well-structured summary.
+        Requirements:
+        - Create 1-2 main sections with clear headings
+        - Include key concepts, definitions, and important details
+        - Use bullet points for clarity where appropriate
+        - Keep it concise but comprehensive (50-150 words)
+        - Focus on the most important information for studying
+        Document content:
+        ${chunk}
+        `;
         const summary = await summarizeWithOpenRouter(MODEL, prompt);
         summaries.push(summary);
     }

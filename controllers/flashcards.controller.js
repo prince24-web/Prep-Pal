@@ -38,14 +38,14 @@ const generateFlashcardsWithOpenRouter = async (textChunks) => {
     const allFlashcards = [];
     const failedChunks = [];
     for (const chunk of textChunks) {
-        const prompt = `You are an API that generates exactly 5 educational flashcards in pure JSON format only, without any text or description. Each flashcard must be a {"q": "...", "a": "..."} object. Do not explain your response.
+        const prompt = `You are an API that generates exactly 5 educational flashcards in pure JSON format only, without any text or description. Each flashcard must be a {"front": "...", "back": "...", "category": "concept/definition/application"} object. Do not explain your response.
 
         Input Text:
         ${chunk}
         
         Return this format only:
         [
-          {"q": "...", "a": "..."},
+          {"front": "...", "back": "...", "category": "concept/definition/application"},
           ...
         ]`;
         const { data } = await axios.post(

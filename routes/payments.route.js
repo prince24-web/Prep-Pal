@@ -12,7 +12,7 @@ router
 router
     .route("/:id")
     .get(protect, paymentsController.getPayment)
-    .patch(paymentsController.updatePaymentById)
-    .delete(paymentsController.deletePaymentById);
+    .patch(protect, paymentsController.updatePaymentById)
+    .delete(protect, paymentsController.deletePaymentById);
 
 export default router;
