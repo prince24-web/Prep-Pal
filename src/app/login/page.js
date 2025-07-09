@@ -1,15 +1,13 @@
-// app/login/page.js
 'use client'
+
 import { useState, useEffect, Suspense } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Brain, Eye, EyeOff, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
-// Separate component that uses useSearchParams
 const LoginContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClientComponentClient();
   const redirectTo = searchParams.get('redirectTo') || '/upload';
 
   const [isMounted, setIsMounted] = useState(false);
@@ -18,6 +16,7 @@ const LoginContent = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({
     passwordMismatch: false,
     termsRequired: false,
@@ -33,20 +32,36 @@ const LoginContent = () => {
   });
 
   useEffect(() => {
-    setIsMounted(true);
-    
-    // Check if user is already logged in
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push(redirectTo);
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/getMe`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.data) {
+          router.push(redirectTo);
+        } else {
+          localStorage.removeItem('accessToken');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.log('Invalid or expired token');
+        localStorage.removeItem('accessToken');
+        setLoading(false);
       }
     };
-    checkAuth();
-  }, [supabase.auth, router, redirectTo]);
 
-  // Clear errors when switching between login/signup
+    checkAuth();
+  }, [router, redirectTo]);
+
   useEffect(() => {
+    setIsMounted(true);
     setErrors({
       passwordMismatch: false,
       termsRequired: false,
@@ -55,7 +70,16 @@ const LoginContent = () => {
     });
   }, [isLogin]);
 
-  if (!isMounted) return null;
+  if (!isMounted || loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -66,17 +90,12 @@ const LoginContent = () => {
         setErrors(prev => ({ ...prev, termsRequired: false }));
       }
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
 
-      // Clear field-specific errors when user starts typing
       if (name === 'password' || name === 'confirmPassword') {
         setErrors(prev => ({ ...prev, passwordMismatch: false, auth: '' }));
       }
-      
-      // Clear empty field error when user starts typing
+
       if (value.trim()) {
         setErrors(prev => ({
           ...prev,
@@ -99,12 +118,8 @@ const LoginContent = () => {
       auth: ''
     };
 
-    // Define required fields based on login/signup mode
-    const requiredFields = isLogin 
-      ? ['email', 'password']
-      : ['name', 'email', 'password', 'confirmPassword'];
+    const requiredFields = isLogin ? ['email', 'password'] : ['name', 'email', 'password', 'confirmPassword'];
 
-    // Check for empty fields
     requiredFields.forEach(field => {
       if (!formData[field] || formData[field].trim() === '') {
         newErrors.emptyFields[field] = true;
@@ -112,13 +127,11 @@ const LoginContent = () => {
       }
     });
 
-    // Check password match for signup
     if (!isLogin && formData.password !== formData.confirmPassword) {
       newErrors.passwordMismatch = true;
       hasErrors = true;
     }
 
-    // Check terms agreement for signup
     if (!isLogin && !agreeToTerms) {
       newErrors.termsRequired = true;
       hasErrors = true;
@@ -131,40 +144,27 @@ const LoginContent = () => {
     }
 
     try {
+      const apiBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth`;
+
       if (isLogin) {
-        // Sign in with Supabase
-        const { error } = await supabase.auth.signInWithPassword({
+        const res = await axios.post(`${apiBaseUrl}/login`, {
           email: formData.email,
-          password: formData.password,
+          password: formData.password
         });
-        
-        if (error) throw error;
-        
-        // Redirect on successful login
+
+        const { session } = res.data;
+        localStorage.setItem('accessToken', session.access_token);
+
         router.push(redirectTo);
-        
+
       } else {
-        // Sign up with Supabase
-        const { error } = await supabase.auth.signUp({
+        await axios.post(`${apiBaseUrl}/register`, {
           email: formData.email,
           password: formData.password,
-          options: {
-            data: {
-              name: formData.name,
-            }
-          }
+          username: formData.name
         });
-        
-        if (error) throw error;
-        
-        // Show success message for signup
-        setErrors(prev => ({ 
-          ...prev, 
-          auth: '' 
-        }));
-        
-        // You might want to show a success message instead of redirecting immediately
-        // For now, we'll redirect to login mode
+
+        alert('Account created successfully! Please check your email.');
         setIsLogin(true);
         setFormData({
           email: formData.email,
@@ -172,33 +172,11 @@ const LoginContent = () => {
           confirmPassword: '',
           name: ''
         });
-        
-        // Show success message
-        alert('Account created successfully! Please check your email to confirm your account.');
       }
-      
+
     } catch (error) {
-      console.error('Authentication error:', error);
-      
-      // Handle specific Supabase errors
-      let errorMessage = 'An unexpected error occurred';
-      
-      if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password';
-      } else if (error.message?.includes('User already registered')) {
-        errorMessage = 'An account with this email already exists';
-      } else if (error.message?.includes('Password should be at least')) {
-        errorMessage = 'Password must be at least 6 characters long';
-      } else if (error.message?.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid email address';
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Please check your email and confirm your account';
-      } else if (error.message?.includes('Signup requires')) {
-        errorMessage = 'Email confirmation is required. Please check your inbox.';
-      } else {
-        errorMessage = error.message;
-      }
-      
+      console.error('Auth error:', error);
+      const errorMessage = error.response?.data?.message || 'Something went wrong.';
       setErrors(prev => ({ ...prev, auth: errorMessage }));
     } finally {
       setIsLoading(false);

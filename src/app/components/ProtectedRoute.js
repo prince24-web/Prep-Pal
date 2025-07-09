@@ -1,51 +1,27 @@
-// components/ProtectedRoute.js
-'use client'
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [hasError, setHasError] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        // Add a timeout to catch network issues
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Network timeout')), 10000)
-        );
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-        const authPromise = supabase.auth.getSession();
-        
-        const { data: { session }, error } = await Promise.race([
-          authPromise,
-          timeoutPromise
-        ]);
-
-        if (error) {
-          console.error('Auth error:', error);
-          setHasError(true);
+        if (!token) {
           setAuthenticated(false);
           router.push('/login?redirectTo=/upload');
-          return;
+        } else {
+          setAuthenticated(true);
         }
-
-        if (!session) {
-          // No session, redirect to login
-          setAuthenticated(false);
-          router.push('/login?redirectTo=/upload');
-          return;
-        }
-
-        // User is authenticated
-        setAuthenticated(true);
-        setHasError(false);
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('Auth check failed:', error);
         setHasError(true);
         setAuthenticated(false);
         router.push('/login?redirectTo=/upload');
@@ -55,28 +31,9 @@ const ProtectedRoute = ({ children }) => {
     };
 
     checkAuth();
+  }, [router]);
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          setAuthenticated(false);
-          setHasError(false);
-          router.push('/login?redirectTo=/upload');
-        } else if (event === 'SIGNED_IN' && session) {
-          setAuthenticated(true);
-          setHasError(false);
-        }
-      }
-    );
-
-    // Cleanup subscription
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [router, supabase.auth]);
-
-  // Show loading spinner while checking authentication
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -92,7 +49,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Show error state for network/connection issues
+  // Error state
   if (hasError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center">
@@ -117,7 +74,6 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Only render children if authenticated (and no errors)
   return authenticated ? children : null;
 };
 

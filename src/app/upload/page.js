@@ -1,45 +1,32 @@
-'use client'
-import React, { useState, useRef } from 'react';
-import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download, LogOut, User, AlertCircle } from 'lucide-react';
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, FileText, Brain, BookOpen, Zap, X, Check, ArrowRight, Download, AlertCircle } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../components/ProtectedRoute';
-import QuizResultsSection from '../components/quiz';
-import ModernFlashcards from '../components/flashcard';
 
 const PDFUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // NEW: Track upload state
-  const [processingStep, setProcessingStep] = useState(0);
   const [results, setResults] = useState(null);
-  const [user, setUser] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [processingStep, setProcessingStep] = useState(0);
   const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
-  const supabase = createClientComponentClient();
-  const router = useRouter();
-
-   // ADD THESE MISSING STATE VARIABLES
   const [flashcardData, setFlashcardData] = useState(null);
   const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
-  
-  // Get user info on component mount
-  React.useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, [supabase.auth]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const fileInputRef = useRef(null);
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-  const generationOptions = [
+  useEffect(() => {
+    if (!accessToken) router.push('/login');
+  }, [router, accessToken]);
+const generationOptions = [
     {
       id: 'summary',
       title: 'Smart Summary',
@@ -65,8 +52,6 @@ const PDFUploadPage = () => {
       time: '~4 minutes'
     }
   ];
-
-  // UPDATED: More detailed processing steps
   const processingSteps = [
     'Uploading PDF to secure storage...',
     'Analyzing PDF structure...',
@@ -78,11 +63,6 @@ const PDFUploadPage = () => {
 
   const handleFileSelect = (file) => {
     if (file && file.type === 'application/pdf') {
-      // Check file size (limit to 50MB)
-      if (file.size > 50 * 1024 * 1024) {
-        setError('File size exceeds 50MB limit');
-        return;
-      }
       setUploadedFile(file);
       setResults(null);
       setError(null);
@@ -111,34 +91,43 @@ const PDFUploadPage = () => {
   };
 
   const toggleOption = (optionId) => {
-    setSelectedOptions(prev => 
-      prev.includes(optionId) 
-        ? prev.filter(id => id !== optionId)
-        : [...prev, optionId]
-    );
+    setSelectedOptions(prev => prev.includes(optionId) ? prev.filter(id => id !== optionId) : [...prev, optionId]);
   };
 
-  // UPDATED: New upload function for Supabase Storage
-  const uploadToSupabase = async (file) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `pdfs/${fileName}`;
+  const uploadPdfToLevi = async (file) => {
+    const formData = new FormData();
+    formData.append('pdf', file);
 
-    const { data, error } = await supabase.storage
-      .from('documents') // Make sure this bucket exists in Supabase
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/uploads/pdf`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: formData,
+    });
 
-    if (error) {
-      throw new Error(`Upload failed: ${error.message}`);
-    }
+    const result = await response.json();
+    if (!response.ok) throw new Error(result?.message || 'Failed to upload PDF');
 
-    return data.path;
+    return result.data.uploadLog.id;
   };
 
-  // UPDATED: New handleGenerate function with Supabase Storage flow
+  const requestAI = async (uploadId, type) => {
+    const endpoints = {
+      summary: `${process.env.NEXT_PUBLIC_API_URL}/summaries/pdf/${uploadId}`,
+      flashcards: `${process.env.NEXT_PUBLIC_API_URL}/flashcards/pdf/${uploadId}`,
+      quiz: `${process.env.NEXT_PUBLIC_API_URL}/quizzes/pdf/${uploadId}`,
+    };
+
+    const response = await fetch(endpoints[type], {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result?.message || `Failed to generate ${type}`);
+
+    return result.data;
+  };
+
   const handleGenerate = async () => {
     if (!uploadedFile || selectedOptions.length === 0) return;
 
@@ -146,96 +135,33 @@ const PDFUploadPage = () => {
     setIsUploading(true);
     setProcessingStep(0);
     setError(null);
-    
-    // Set loading states for specific components
-    if (selectedOptions.includes('flashcards')) {
-      setIsGeneratingFlashcards(true);
-    }
 
     try {
-      console.log('🚀 Starting PDF processing with options:', selectedOptions);
+      const uploadId = await uploadPdfToLevi(uploadedFile);
 
-      // Simulate processing steps for UI - more frequent updates
-      const progressInterval = setInterval(() => {
-        setProcessingStep(prev => {
-          if (prev < processingSteps.length - 1) {
-            return prev + 1;
-          }
-          return prev;
-        });
-      }, 1500);
+      const generatedResults = {};
 
-      // Step 1: Upload to Supabase Storage
-      console.log('📤 Uploading to Supabase Storage...');
-      const filePath = await uploadToSupabase(uploadedFile);
-      console.log('✅ File uploaded successfully:', filePath);
-      
-      setIsUploading(false);
-      setProcessingStep(1); // Move to next step
-
-      // Step 2: Process via API route with file path
-      console.log('🤖 Processing with AI...');
-      const response = await fetch('/api/process-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filePath: filePath,
-          fileName: uploadedFile.name,
-          options: selectedOptions
-        }),
-      });
-
-      clearInterval(progressInterval);
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to process PDF');
+      if (selectedOptions.includes('summary')) {
+        const summaryData = await requestAI(uploadId, 'summary');
+        generatedResults.summary = { content: 'Download your summary from: ' + summaryData.summary_url };
       }
 
-      const data = await response.json();
-      
-      console.log('📦 Full API Response:', data);
-      console.log('📦 Response success:', data?.success);
-      
-      if (data?.success) {
-        // Process the results
-        let processedResults = {};
-        
-        // Handle summary
-        if (data.summary) {
-          processedResults.summary = {
-            content: data.summary
-          };
-        }
-        
-        // Handle flashcards
-        if (data.flashcards) {
-          console.log('🎴 Setting flashcard data:', data.flashcards);
-          setFlashcardData(data.flashcards);
-          processedResults.flashcards = data.flashcards;
-        }
-        
-        // Handle quiz
-        if (data.quiz) {
-          processedResults.quiz = data.quiz;
-        }
-        
-        console.log('🎯 Final results being set:', processedResults);
-        setResults(processedResults);
-        setProcessingStep(processingSteps.length - 1);
-        
-      } else {
-        throw new Error(data?.error || 'Processing failed - success was false');
+      if (selectedOptions.includes('flashcards')) {
+        const flashcardsData = await requestAI(uploadId, 'flashcards');
+        generatedResults.flashcards = flashcardsData;
+        setFlashcardData(flashcardsData);
       }
 
-    } catch (error) {
-      console.error('❌ Processing error:', error);
-      setError(error.message || 'An error occurred while processing your PDF');
+      if (selectedOptions.includes('quiz')) {
+        const quizData = await requestAI(uploadId, 'quiz');
+        generatedResults.quiz = quizData;
+      }
+
+      setResults(generatedResults);
+      setProcessingStep(5);
+
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsProcessing(false);
       setIsUploading(false);
@@ -254,25 +180,7 @@ const PDFUploadPage = () => {
     setFlashcardData(null);
   };
 
-  const downloadContent = (content, filename, type = 'text/plain') => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const exportFlashcardsToAnki = (flashcards) => {
-    const ankiFormat = flashcards.cards.map(card => 
-      `${card.front}\t${card.back}`
-    ).join('\n');
-    downloadContent(ankiFormat, 'flashcards.txt', 'text/plain');
-  };
-
+  
   return (
     <ProtectedRoute>
     <div className="min-h-screen relative overflow-hidden">
